@@ -1,0 +1,36 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+body{
+  margin: 0;
+  padding: 0;
+}
+.main-content {
+  flex: 1;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 22s linear infinite;
+  will-change: transform;
+}
+
+.ticker-scroll-area:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker-dot {
+  width: 5px;
+  height: 5px;
+  background: #f87171;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
