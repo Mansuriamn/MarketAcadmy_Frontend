@@ -7,15 +7,27 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/me", {
-      credentials: "include",
-    })
-      .then(res => res.json())
-      .then(data => {
-        setUser(data.user || data.data?.user || null);
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/server/api/auth/me", {
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.data?.user || data.user || null);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        setUser(null);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+
+    checkAuth();
   }, []);
 
   return (

@@ -33,15 +33,16 @@ const NewsPost =()=> {
       const imageFormData = new FormData();
       imageFormData.append("image", formData.featuredImageFile);
 
-      const uploadRes = await fetch(`/server/api/news/create`, {
+      const uploadRes = await fetch(`/server/upload?page=news`, {
         method: "POST",
+        credentials: "include", // Added for consistency
         body: imageFormData
       });
 
       const uploadData = await uploadRes.json();
 
       if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-      const postRes = await fetch(`/server/api/news`, {
+      const postRes = await fetch(`/server/api/news/create`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

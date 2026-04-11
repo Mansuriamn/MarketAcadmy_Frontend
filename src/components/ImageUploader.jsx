@@ -86,7 +86,7 @@ export default function ImageUploader({ onImageSelect, onImageRemove }) {
         )}
 
         {preview ? (
-          <img src={preview} alt="Preview" className="mx-auto rounded-lg max-h-48 object-cover shadow-sm" />
+          <img src={preview}  className="mx-auto rounded-lg max-h-48 object-cover shadow-sm" />
         ) : (
           <div className="flex flex-col items-center">
             <Upload className="w-10 h-10 text-gray-300 mx-auto mb-3" />

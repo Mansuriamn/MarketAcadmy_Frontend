@@ -21,32 +21,44 @@ const Hero = ({ page }) => {
   
 
   const { image, category, title } = post[0];
+  const imageUrl = image || 'https://images.unsplash.com/photo-1611974717482-98287e074b35?auto=format&fit=crop&q=80&w=1200';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="relative rounded-3xl overflow-hidden group shadow-lg">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="relative rounded-[2.5rem] overflow-hidden group premium-shadow border border-white/20">
 
         <img
-          src={image}
-          className="w-full h-[300px] md:h-[420px] object-cover group-hover:scale-110 transition duration-700 ease-out"
+          src={imageUrl}
+         
+          className="w-full h-[350px] md:h-[500px] object-cover group-hover:scale-105 transition duration-1000 ease-out"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        {/* Dynamic Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
 
-        <div className="absolute inset-0 flex flex-col justify-end md:justify-center p-6 md:p-12">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="bg-teal-500 px-3 py-1 text-xs rounded-full text-white font-medium tracking-wide">
+        <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="bg-teal-500 backdrop-blur-md px-4 py-1.5 text-[10px] rounded-full text-white font-bold uppercase tracking-widest shadow-lg">
               {category}
             </span>
           </div>
 
-          <h1 className="text-white text-2xl md:text-5xl font-bold max-w-3xl leading-tight tracking-tight">
+          <h1 className="text-white text-3xl md:text-6xl font-extrabold max-w-4xl leading-[1.1] tracking-tight mb-4 font-outfit">
             {title}
           </h1>
+          
+          {/* <div className="flex items-center gap-4 text-slate-300 text-sm font-medium">
+             <span className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                Featured Analysis
+             </span>
+             <span className="w-1 h-1 rounded-full bg-slate-500" />
+             
+          </div> */}
         </div>
 
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-white/5"></div>
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-700 bg-white/5 pointer-events-none"></div>
       </div>
     </div>
   );

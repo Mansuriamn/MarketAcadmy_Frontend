@@ -54,7 +54,7 @@ const [publishing, setPublishing] = useState(false);
       const uploadData = await uploadRes.json();
       
       if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-      const postRes = await fetch(`/server/api/courses`, {
+      const postRes = await fetch(`/server/api/courses/create`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

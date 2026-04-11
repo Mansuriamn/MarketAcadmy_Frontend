@@ -23,10 +23,10 @@ import QuoteCallout from '../components/QuoteCallout';
       try {
         let url;
         if(page === "news"){
-          url = `http://localhost:5000/api/news/${id}`;
+          url = `/server/api/news/${id}`;
         }
         else{
-           url = `http://localhost:5000/api/blogs/${id}`;
+           url = `/server/api/blogs/${id}`;
         }
         
         const res = await fetch(url);
@@ -103,7 +103,7 @@ import QuoteCallout from '../components/QuoteCallout';
               <div className="relative mb-8 rounded-xl overflow-hidden bg-slate-900">
                 <img
                   src={post.image}
-                  alt={post.title}
+                
                   className="w-full h-auto"
                 />
               </div>

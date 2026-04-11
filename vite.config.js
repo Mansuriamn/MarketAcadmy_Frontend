@@ -10,12 +10,12 @@ export default defineConfig({
   ],
 
   server: {
- proxy: {
-  '/server': {
-    target: 'https://my-backend-l34p.onrender.com',
-    changeOrigin: true,
-    rewrite: (path) => path.replace(/^\/server/, ''),
-  },
-}
-}
+    proxy: {
+      '/server': {
+        target: 'https://backend-qy4o.onrender.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/server/, ''),
+      },
+    }
+  }
 })

@@ -42,7 +42,7 @@ import JoinCircle from '../advertise/JoinCircle';
             <div className="hidden lg:block">
               <img
                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop"
-                alt="Financial data"
+              
                 className="rounded-2xl shadow-2xl"
               />
             </div>
@@ -71,7 +71,7 @@ import JoinCircle from '../advertise/JoinCircle';
             <div className="order-2 lg:order-1">
               <img
                 src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop"
-                alt="Trading screens"
+               
                 className="rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-500"
               />
             </div>

@@ -46,7 +46,7 @@ import{PageTabs} from '../../data/PageTabs';
       const uploadData = await uploadRes.json();
 
       if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-      const postRes = await fetch(`/server/api/blogs`, {
+      const postRes = await fetch(`/server/api/blogs/create`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

@@ -26,45 +26,50 @@ const BlogCardComponent = ({ post ,page}) => {
   if (!post) return null;
 
   const { _id, title, category, excerpt, description, image, categoryColor } = post;
+  
+  // 📸 Reliable Fallback
+  const imageUrl = image || 'https://images.unsplash.com/photo-1611974717482-98287e074b35?auto=format&fit=crop&q=80&w=800';
 
   const categoryStyle = getCategoryColor(categoryColor);
 
   // ✅ controlled truncation
- const shortTitle = title.length > 70 
-  ? title.slice(0, 70) + "..." 
-  : title;
+  const shortTitle = title.length > 70 
+    ? title.slice(0, 70) + "..." 
+    : title;
 
-const textContent = excerpt || description;
-const shortExcerpt = textContent && textContent.length > 100
-  ? textContent.slice(0, 100) + "..."
-  : textContent;
+  const textContent = excerpt || description || "";
+  const shortExcerpt = textContent.length > 100
+    ? textContent.slice(0, 100) + "..."
+    : textContent;
 
   return (
     <Link to={`/${page}/${_id}`} className="group" data-testid={`blog-card-${_id}`}>
-      <div className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+      <div className="bg-white rounded-2xl overflow-hidden premium-shadow hover-lift transition-all duration-300 h-full flex flex-col border border-slate-100">
 
         {/* Image */}
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-52 overflow-hidden">
           <img
-            src={image}
-            alt={title}
+            src={imageUrl}
+            
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
-          <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500 text-white`}>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-60" />
+          <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500 text-white shadow-lg">
             {category}
           </span>
         </div>
 
         {/* Content */}
-        <div className="p-5 flex-1 flex flex-col">
-          <h3 className="text-xl font-bold text-gray-900 mb-3 leading-snug group-hover:text-text-muted transition-colors">
-            {shortTitle}   {/* ✅ truncated */}
+        <div className="p-6 flex-1 flex flex-col">
+          <h3 className="text-lg font-bold text-slate-900 mb-3 leading-snug group-hover:text-slate-500 transition-colors">
+            {shortTitle}
           </h3>
-          <p className="text-gray-600 text-sm mb-4 flex-1 line-clamp-2">
-            {shortExcerpt}  {/* ✅ truncated */}
+          <p className="text-slate-500 text-sm mb-4 flex-1 line-clamp-3 leading-relaxed">
+            {shortExcerpt}
           </p>
         </div>
+
 
       </div>
     </Link>
