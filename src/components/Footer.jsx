@@ -10,11 +10,11 @@ const Footer = () => (
       {/* LEFT */}
       <div className="text-center lg:text-left">
         <h4 className="font-display text-lg sm:text-xl font-semibold mb-3 tracking-wide">
-          MarketPulse <span className="text-accent">Elite</span>
+          Market<span className="text-accent">Acad</span>
         </h4>
 
         <p className="text-xs text-white/40 uppercase tracking-[2px] max-w-xs mx-auto lg:mx-0 leading-relaxed">
-          © 2024 MarketPulse Elite. All rights reserved. Precision in every trade.
+          © 2024 MarketAcad. All rights reserved. Precision in every trade.
         </p>
       </div>
 

@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Header';
 import Footer from '../components/Footer';
-import { values, stats } from '../data/AboutData';
-import Editorial from '../Add/Editorial';
+import { values, stats } from '../data/adverData';
+import Editorial from '../advertise/Editorial';
 import Curators from '../components/ui/Curators';
-import JoinCircle from '../Add/JoinCircle';
+import JoinCircle from '../advertise/JoinCircle';
 
-export const About = () => {
+ const About = () => {
  
 
 
@@ -32,7 +32,11 @@ export const About = () => {
                 Financial Intelligence
               </h1>
               <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
-                MarketPulse Elite was founded on a singular promise: institutional-grade analysis shouldn't be locked behind a paywall. We decode the tools, the data, and the insights that move markets—empowering every investor to navigate global markets with absolute clarity.
+                Market Plus Academy is a professional financial education and market support platform dedicated to helping individuals learn, understand, and grow in the stock market.
+              </p>
+             
+               <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
+               Our mission is to empower traders and investors with the right knowledge, practical strategies, and disciplined risk management to achieve consistent growth.
               </p>
             </div>
             <div className="hidden lg:block">
@@ -79,7 +83,7 @@ export const About = () => {
                 What began as a proprietary internal tool for a boutique Manhattan hedge fund is now a public platform that millions of investors rely on. Founded by traders fed with tech of expert curation.
               </p>
               <p className="text-gray-700 leading-relaxed mb-8">
-                MarketPulse Elite was born in 2018 to bridge that gap. We didn't just report financial news—we built a public platform that pioneered a shift towards a more equitable financial landscape.
+                MarketAcad team was born in 2018 to bridge that gap. We didn't just report financial news—we built a public platform that pioneered a shift towards a more equitable financial landscape.
               </p>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -118,3 +122,5 @@ export const About = () => {
     </div>
   );
 };
+
+export default About

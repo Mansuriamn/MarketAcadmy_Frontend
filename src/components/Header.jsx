@@ -3,11 +3,12 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, X } from 'lucide-react';
 import { navLinks } from '../data/navLinks';
 import SearchBox from './ui/SearchBox';
-const Navbar = () => {
+const Navbar = ({ searchQuery = "", onSearchChange }) => {
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [find, setFind] = useState("");
   const navigate = useNavigate();
-
+ 
 
 
   // ✅ Handle Enter key
@@ -45,7 +46,11 @@ const Navbar = () => {
           </div>
 
           {/* Search Bar Desktop */}
-          <SearchBox />
+          <SearchBox 
+           value={searchQuery}
+            onChange={onSearchChange}
+            placeholder="Search ..."
+          />
 
           {/* Auth */}
           <div className="flex items-center gap-3">
@@ -89,11 +94,11 @@ transition-all duration-300 ease-in-out">
               <Search className="absolute left-4 text-text-muted w-[18px] h-[18px] group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
-                placeholder="Search..."
                 className="w-full pl-11 pr-4 py-[0.7rem] text-[0.95rem] font-medium bg-gray-50 border border-gray-200 rounded-xl text-text-main placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-[4px] focus:ring-primary/10 transition-all"
-                value={find}                         // ✅ sync state
-                onChange={(e) => setFind(e.target.value)} // ✅ added
-                onKeyDown={handleKeyDown}            // ✅ added
+                 value={searchQuery}
+  onChange={(e) => onSearchChange(e.target.value)}
+  placeholder="Search ..."
+  
               />
             </div>
 

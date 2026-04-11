@@ -10,12 +10,14 @@ export const AdminLayout = ({ children }) => {
   const navigation = [
 //     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'My Posts', href: '/admin/posts', icon: FileText },
-    { name: 'Create New Post', href: '/admin/create', icon: PenSquare },
+    { name: 'Create Blog Post', href: '/admin/blog-post', icon: PenSquare },
+    //  { name: 'Create News Post', href: '/admin/news-post', icon: PenSquare },
+      { name: 'Added New Course', href: '/admin/course-post', icon: PenSquare },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
   const isActive = (path) => location.pathname === path;
-
+ const {name}=JSON.parse(localStorage.getItem('admin'));
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
@@ -37,8 +39,8 @@ export const AdminLayout = ({ children }) => {
           {/* Logo */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <Link to="/admin" className="flex flex-col" data-testid="admin-logo">
-              <span className="text-xl font-bold text-gray-900">MarketAcademy</span>
-              <span className="text-xs text-gray-500 uppercase tracking-wide">Elite Admin</span>
+              <span className="text-xl font-bold text-gray-900">MarketAcad</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wide">Admin</span>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -79,8 +81,8 @@ export const AdminLayout = ({ children }) => {
                 <User className="w-6 h-6 text-teal-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">Admin User</p>
-                <p className="text-xs text-gray-500">Super Admin</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{name}</p>
+                <p className="text-xs text-gray-500">Admin</p>
               </div>
             </div>
           </div>

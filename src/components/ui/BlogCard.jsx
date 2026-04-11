@@ -22,18 +22,10 @@ const truncateText = (text = "", maxLength) => {
   return text.slice(0, maxLength).trim() + "...";
 };
 
-const BlogCardComponent = ({ post }) => {
-
+const BlogCardComponent = ({ post ,page}) => {
   if (!post) return null;
 
-  const {
-    id,
-    image,
-    title,
-    excerpt,
-    category,
-    categoryColor
-  } = post;
+  const { _id, title, category, excerpt, description, image, categoryColor } = post;
 
   const categoryStyle = getCategoryColor(categoryColor);
 
@@ -42,12 +34,13 @@ const BlogCardComponent = ({ post }) => {
   ? title.slice(0, 70) + "..." 
   : title;
 
-const shortExcerpt = excerpt && excerpt.length > 100
-  ? excerpt.slice(0, 100) + "..."
-  : excerpt;
+const textContent = excerpt || description;
+const shortExcerpt = textContent && textContent.length > 100
+  ? textContent.slice(0, 100) + "..."
+  : textContent;
 
   return (
-    <Link to={`/blog/${id}`} className="group" data-testid={`blog-card-${id}`}>
+    <Link to={`/${page}/${_id}`} className="group" data-testid={`blog-card-${_id}`}>
       <div className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
 
         {/* Image */}
@@ -58,7 +51,7 @@ const shortExcerpt = excerpt && excerpt.length > 100
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
-          <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold ${categoryStyle}`}>
+          <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500 text-white`}>
             {category}
           </span>
         </div>

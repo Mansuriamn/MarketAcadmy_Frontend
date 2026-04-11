@@ -12,32 +12,40 @@ export default function Join() {
 
   // ✅ Handle Submit
   const handleSubmit = async () => {
-    if (!email) {
-      setMessage("Please enter your email");
-      return;
-    }
+  if (!email) {
+    setMessage("Please enter your email");
+    return;
+  }
 
-    if (!isValidEmail(email)) {
-      setMessage("Invalid email format");
-      return;
-    }
+  if (!isValidEmail(email)) {
+    setMessage("Invalid email format");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      setMessage("");
+  try {
+    setLoading(true);
+    setMessage("");
 
-      // 🔥 Simulate API call (replace with real API)
-      await new Promise((res) => setTimeout(res, 1000));
+    const res = await fetch("/api/newsletter", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
 
-      setMessage("Successfully Joined 🎉");
-      setEmail(""); // clear input
-    } catch (err) {
-      setMessage("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await res.json();
 
+    if (!res.ok) throw new Error(data.message);
+
+    setMessage("Successfully Joined 🎉");
+    setEmail("");
+  } catch (err) {
+    setMessage(err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <>
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 text-white" data-testid="newsletter-signup">

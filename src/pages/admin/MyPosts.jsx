@@ -1,179 +1,340 @@
-import React, { useState } from 'react';
+// pages/admin/MyPosts.jsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminLayout } from '../../components/AdminLayout';
-import { Search, Plus, MoreVertical, Eye, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Eye, Trash2, MoreVertical } from 'lucide-react';
+import MoreButton from '../../components/ui/MoreButton';
+import useDebounce from '../../hooks/useDebounce';
 
-export const MyPosts = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+const LIMIT = 7;
 
-  const posts = [
-    {
-      id: 1,
-      title: 'The 2024 Tech Pivot: Why Semiconductors are Leading the Next Bull Run',
-      category: 'FEATURED REPORT',
-      status: 'Published',
-      views: '12.4K',
-      date: 'Aug 15, 2024',
-      author: 'Marcus Sterling',
-    },
-    {
-      id: 2,
-      title: 'Upcoming Fintech IPOs to Watch in Q3 2024',
-      category: 'IPO WATCH',
-      status: 'Published',
-      views: '8.2K',
-      date: 'Aug 14, 2024',
-      author: 'Elena Rossi',
-    },
-    {
-      id: 3,
-      title: 'Mastering Delta Neutral Strategies for Volatile Markets',
-      category: 'OPTIONS',
-      status: 'Draft',
-      views: '0',
-      date: 'Aug 13, 2024',
-      author: 'David Chen',
-    },
-    {
-      id: 4,
-      title: 'The Impact of Interest Rate Decisions on Global Bonds',
-      category: 'MACRO',
-      status: 'Published',
-      views: '6.8K',
-      date: 'Aug 11, 2024',
-      author: 'Sarah Jenkins',
-    },
-  ];
-  
+// Tab → API endpoint mapping
+// Each tab hits a completely different resource
+const TAB_ENDPOINTS = {
+  Blogs:   "blogs",
+  News:    "news",
+  Courses: "courses",
+};
+
+const MyPosts = () => {
+
+  // ─── State ──────────────────────────────────────────────────────────────
+  const [activeTab,    setActiveTab]    = useState("Blogs");
+  const [searchQuery,  setSearchQuery]  = useState("");
+  const [posts,        setPosts]        = useState([]);
+  const [page,         setPage]         = useState(0);
+  const [hasMore,      setHasMore]      = useState(true);
+  const [loading,      setLoading]      = useState(false);
+  const [error,        setError]        = useState(null);
+
+  // Debounce search — wait 400ms after user stops typing
+  const debouncedQuery = useDebounce(searchQuery, 400);
+
+  // ─── Core fetch ─────────────────────────────────────────────────────────
+  /**
+   * Single function handles all cases:
+   * 1. Search active  → /api/{tab}/search?q=...
+   * 2. No search      → /api/{tab}?limit=...&offset=...
+   *
+   * tab switches the entire API endpoint (blogs / news / courses)
+   */
+  const fetchPosts = useCallback(async (pageNum, tab, query = "") => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const offset   = pageNum * LIMIT;
+      const endpoint = TAB_ENDPOINTS[tab]; // "blogs" | "news" | "courses"
+
+      let url;
+
+      if (query.trim().length >= 2) {
+        // Search — no pagination params, backend limits internally
+        url = `/server/api/${endpoint}/search?limit=${LIMIT}&offset=${offset}&q=${encodeURIComponent(query.trim())}`;
+      } else {
+        // Default — paginated list for this tab's endpoint
+        url = `/server/api/${endpoint}?limit=${LIMIT}&offset=${offset}`;
+      }
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const incoming = await res.json(); // always an array
+
+      // page 0 → fresh replace | page 1+ → append
+      setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
+
+      // If we got fewer than LIMIT, there's nothing left to load
+      setHasMore(incoming.length === LIMIT);
+
+    } catch (err) {
+      console.error("fetchPosts error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // no deps — tab/query passed as arguments, not closed over
+
+  // ─── Search effect ───────────────────────────────────────────────────────
+  /**
+   * Fires when debounced query changes.
+   * Always resets to page 0 — a new search is a fresh result set.
+   * Skips if query is exactly 1 char (too short to be useful).
+   */
+  useEffect(() => {
+    if (debouncedQuery.length === 1) return;
+
+    setPosts([]);
+    setPage(0);
+    setHasMore(true);
+    fetchPosts(0, activeTab, debouncedQuery);
+
+  }, [debouncedQuery]); // intentionally excludes activeTab — search is independent
+
+  // ─── Tab / mount effect ──────────────────────────────────────────────────
+  /**
+   * Fires on mount and whenever the tab changes.
+   * Skips if an active search is in progress — search takes priority.
+   * Switching tab clears search (see handleTabChange below).
+   */
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) return; // search is active, don't override
+
+    setPosts([]);
+    setPage(0);
+    setHasMore(true);
+    fetchPosts(0, activeTab, "");
+
+  }, [activeTab, fetchPosts]);
+
+  // ─── Load More ───────────────────────────────────────────────────────────
+  const handleLoadMore = () => {
+    if (loading || !hasMore) return;
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchPosts(nextPage, activeTab, debouncedQuery); // carry current search forward
+  };
+
+  // ─── Tab switch ──────────────────────────────────────────────────────────
+  /**
+   * Switching tab resets everything including the search query.
+   * This is intentional — search results from "Blogs" don't apply to "News".
+   */
+  const handleTabChange = useCallback((tab) => {
+    if (tab === activeTab) return;
+    setSearchQuery("");  // clear search so tab effect fires cleanly
+    setActiveTab(tab);
+  }, [activeTab]);
+
+  // ─── Derived state ───────────────────────────────────────────────────────
+  // No client-side filter needed — server handles all filtering
+  // posts is always the correct result set for current tab + query
+
+  // ─── Render helpers ──────────────────────────────────────────────────────
+  const showSkeleton  = loading && posts.length === 0;
+  const showEmpty     = !loading && !error && posts.length === 0;
+  const showError     = !loading && !!error;
+  const showLoadMore  = hasMore && !loading && posts.length > 0;
+  const showSpinner   = loading && posts.length > 0;
+  const showEndOfFeed = !hasMore && posts.length > 0;
+
+ async function handleDelete(id){
+       
+  const endpoint = TAB_ENDPOINTS[activeTab];
+  const res = await fetch(`/server/api/${endpoint}/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  fetchPosts(0, activeTab, debouncedQuery);
+ }
 
   return (
     <AdminLayout>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+
+        {/* ── Header ────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2" data-testid="my-posts-title">My Posts</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Posts</h1>
             <p className="text-gray-600">Manage your published and draft articles</p>
           </div>
           <Link
-            to="/admin/create"
+            to="/admin/blog-post"
             className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
-            data-testid="create-new-post-button"
           >
             <Plus className="w-5 h-5" />
             Create New Post
           </Link>
         </div>
 
-        {/* Filters and Search */}
+        {/* ── Search + Tab filters ───────────────────────────────────────── */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search posts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border bg-gray-100 focus:bg-white border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  data-testid="search-posts-input"
-                />
-              </div>
+
+            {/* Search input — controlled, feeds into debounce hook */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder={`Search ${activeTab.toLowerCase()}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border bg-gray-100 focus:bg-white border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
+              />
             </div>
 
-            {/* Filter Tabs */}
-          
+            {/* Tab buttons — each switches the entire API endpoint */}
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(TAB_ENDPOINTS).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => handleTabChange(tab)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    activeTab === tab
+                      ? "bg-gray-900 text-white shadow"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
           </div>
         </div>
 
-        {/* Posts Grid */}
+        {/* ── Posts table ────────────────────────────────────────────────── */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full" data-testid="posts-table">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Category
-                  </th>
-                 
-                 
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {posts.map((post) => (
-                  <tr key={post.id} className="hover:bg-gray-50" data-testid={`post-row-${post.id}`}>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900 max-w-md">{post.title}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-semibold text-gray-600">{post.category}</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{post.date}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="p-2 hover:bg-gray-100 rounded-lg" title="View" data-testid={`view-${post.id}`}>
-                          <Eye className="w-4 h-4 text-gray-600" />
-                        </button>
-                        <button className="p-2 hover:bg-gray-100 rounded-lg" title="Delete" data-testid={`delete-${post.id}`}>
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
 
-          {/* Mobile Card View */}
-          <div className="md:hidden divide-y divide-gray-200">
-            {posts.map((post) => (
-              <div key={post.id} className="p-4" data-testid={`post-card-${post.id}`}>
-                <div className="flex items-start justify-between mb-2">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    post.status === 'Published'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {post.status}
-                  </span>
-                  <button className="p-1 hover:bg-gray-100 rounded">
-                    <MoreVertical className="w-5 h-5 text-gray-600" />
-                  </button>
+          {/* ── Skeleton ── */}
+          {showSkeleton && (
+            <div className="p-6 space-y-3">
+              {Array.from({ length: LIMIT }).map((_, i) => (
+                <div key={i} className="h-12 bg-gray-100 animate-pulse rounded-lg" />
+              ))}
+            </div>
+          )}
+
+          {/* ── Error ── */}
+          {showError && (
+            <div className="p-6 text-center text-red-500">
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* ── Empty ── */}
+          {showEmpty && (
+            <div className="p-12 text-center text-gray-500">
+              {searchQuery
+                ? `No ${activeTab.toLowerCase()} found for "${searchQuery}"`
+                : `No ${activeTab.toLowerCase()} yet. Create your first one!`
+              }
+            </div>
+          )}
+
+          {/* ── Desktop table ── */}
+          {posts.length > 0 && (
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {posts.map((post) => (
+                    <tr key={post._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900 max-w-md truncate">{post.title}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-semibold text-gray-600">{post.category}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="View">
+                            {/* <Eye className="w-4 h-4 text-gray-600" /> */}
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(post._id)} className="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ── Mobile cards ── */}
+          {posts.length > 0 && (
+            <div className="md:hidden divide-y divide-gray-200">
+              {posts.map((post) => (
+                <div key={post._id} className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-1 rounded-full">
+                      {post.category}
+                    </span>
+                    <button className="p-1 hover:bg-gray-100 rounded">
+                      <MoreVertical className="w-5 h-5 text-gray-600" />
+                    </button>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{post.title}</h3>
+                  <p className="text-xs text-gray-400 mb-3">
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </p>
+                  <div className="flex gap-2">
+                    <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors">
+                      View
+                    </button>
+                    <button className="flex-1 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-medium transition-colors">
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
-                <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                  <span>{post.category}</span>
-                  <span>•</span>
-                  <span>{post.views} views</span>
-                  <span>•</span>
-                  <span>{post.date}</span>
-                </div>
-                <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium">
-                    View
-                  </button>
-                  <button className="flex-1 px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium">
-                    Edit
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Append spinner ── */}
+          {showSpinner && (
+            <div className="flex justify-center py-6">
+              <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
+          {/* ── Load More ── */}
+          {showLoadMore && (
+            <div className="p-4 border-t border-gray-100">
+              <MoreButton
+                handleLoadMore={handleLoadMore}
+                loading={loading}
+                disabled={loading}
+              />
+            </div>
+          )}
+
+          {/* ── End of feed ── */}
+          {showEndOfFeed && (
+            <p className="text-center text-gray-400 text-sm py-6 border-t border-gray-100">
+              You've seen all {activeTab.toLowerCase()}.
+            </p>
+          )}
+
         </div>
       </div>
     </AdminLayout>
   );
 };
+
+
+export default MyPosts;

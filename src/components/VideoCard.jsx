@@ -3,12 +3,12 @@ import { Play, Eye } from "lucide-react";
 import { Link } from 'react-router-dom';
 
 export const VideoCard = ({ video }) => {
-  
 
+  const { _id, title, image,category,duration } = video;
   return (
-   <Link to={"/video"} >
+   <Link to={`/video/${_id}`} >
      <div
-      data-testid={`video-card-${video.id}`}
+      data-testid={`video-card-${_id}`}
      
       className=" hover:shadow-xl w-full border-none h-full flex flex-col group cursor-pointer bg-white rounded-xl overflow-hidden 
       transition-all duration-300 
@@ -17,13 +17,13 @@ export const VideoCard = ({ video }) => {
       {/* Thumbnail */}
       <div className="relative aspect-video  overflow-hidden">
         <img
-          src={video.thumbnail}
-          alt={video.title}
+          src={image}
+          alt={title}
           loading="lazy"
           className="w-full h-full object-cover 
           group-hover:scale-110 transition-transform duration-500"
         />
-
+   
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/40 
         group-hover:bg-black/60 transition-all duration-300 
@@ -38,12 +38,15 @@ export const VideoCard = ({ video }) => {
               fill="currentColor"
             />
           </div>
+            <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500 text-white`}>
+            {category}
+          </span>
         </div>
 
         {/* Duration */}
         <div className="absolute bottom-2 right-2 bg-black/80 
         text-white text-xs px-2 py-1 rounded-md">
-          {video.duration}
+          {duration}
         </div>
 
         {/* Free Badge */}
@@ -59,7 +62,7 @@ export const VideoCard = ({ video }) => {
       {/* Content */}
       <div className="p-4">
         <h3 className="text-xl font-bold text-gray-900 mb-3 leading-snug group-hover:text-text-muted transition-colors">
-          {video.title}
+          {title}
         </h3>
 
         <div className="flex items-center justify-between text-xs text-gray-400">

@@ -5,34 +5,46 @@ export default function JoinCircle() {
           const [email, setEmail] = useState('');
           const [isLoading, setIsLoading] = useState(false);
           const [message, setMessage] = useState('');
-           const handleSubscribe = async (e) => {
-    e.preventDefault();
 
-    // simple email validation
-    if (!email.includes('@')) {
-      setMessage('Please enter a valid email');
-      return;
+
+         const handleSubscribe = async (e) => {
+  e.preventDefault();
+
+  // Better email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    setMessage('Please enter a valid email');
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+    setMessage('');
+
+    const response = await fetch('/server/api/create/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to subscribe');
     }
 
-    try {
-      setIsLoading(true);
-      setMessage('');
+    setMessage('Successfully subscribed 🎉');
+    setEmail('');
 
-      // simulate API call
-      await new Promise((res) => setTimeout(res, 1500));
-
-      console.log('Subscribed:', email);
-
-      setMessage('Successfully subscribed 🎉');
-      setEmail('');
-
-    } catch (err) {
-      console.error(err);
-      setMessage('Something went wrong. Try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (err) {
+    console.error(err);
+    setMessage(err.message || 'Something went wrong. Try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
    <>

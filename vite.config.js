@@ -8,4 +8,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+
+  server: {
+ proxy: {
+  '/server': {
+    target: 'https://my-backend-l34p.onrender.com',
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/server/, ''),
+  },
+}
+}
 })

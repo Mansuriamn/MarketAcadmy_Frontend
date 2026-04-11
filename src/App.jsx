@@ -1,39 +1,61 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import { BlogList } from './pages/BlogList';
-import { BlogDetail } from './pages/BlogDetail';
-import Account from './pages/Account';
-import { MyPosts } from './pages/admin/MyPosts';
-import { CreatePost } from './pages/admin/CreatePost';
-import { AdminSettings } from './pages/admin/Settings';
-import {About}  from './pages/About';
-import News  from './pages/News';
-import Learn from './pages/Learn';
-import VideoPlay from './pages/VideoPlay';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from "react";
+import ProtectedRoute from "./components/ProtectedRoute";
+import {ScrollToTop} from "./components/ScrollToTop";
+
+// Lazy Load Pages (performance boost 🚀)
+const Home = lazy(() => import("./pages/Home"));
+const BlogDetail = lazy(() => import("./pages/BlogDetail"));
+const Account = lazy(() => import("./pages/Account"));
+const About = lazy(() => import("./pages/About"));
+const News = lazy(() => import("./pages/News"));
+const Learn = lazy(() => import("./pages/Learn"));
+const VideoPlay = lazy(() => import("./pages/VideoPlay"));
+
+const MyPosts = lazy(() => import("./pages/admin/MyPosts"));
+const CreatePost = lazy(() => import("./pages/admin/CreatePost"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const NewsPost = lazy(() => import("./pages/admin/NewsPost"));
+const NewCourse = lazy(() => import("./pages/admin/NewCourse"));
+
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 function App() {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-bg-base">
-       
-        <main className="flex-1 w-full">
-          <Routes>
-            <Route path="/" element={ <Home />} />
-             <Route path="/blog/:id" element={<BlogDetail />} />
+      <ScrollToTop />
+
+      <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
+        <Routes>
+
+          {/* Public Routes */}
+            <Route path="/" element={<Home />} />
             <Route path="/account" element={<Account />} />
             <Route path="/about" element={<About />} />
             <Route path="/news" element={<News />} />
             <Route path="/learn" element={<Learn />} />
-            <Route path='/video' element={<VideoPlay/>}/>
+           
 
-              {/* <Route path="/admin" element={<AdminDashboard />} /> */}
-          <Route path="/admin/posts" element={<MyPosts />} />
-          <Route path="/admin/create" element={<CreatePost />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          </Routes>
-        </main>  
-      </div>
+          {/* Safer dynamic routes */}
+          <Route path="/:page/:id" element={<BlogDetail />} />
+          <Route path="/video/:id" element={<VideoPlay />} />
+
+
+          {/* Protected Admin Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/admin/posts" element={<MyPosts />} />
+            <Route path="/admin/blog-post" element={<CreatePost />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+            <Route path="/admin/news-post" element={<NewsPost />} />
+            <Route path="/admin/course-post" element={<NewCourse />} />
+          </Route>
+
+          {/* 404 Page */}
+          <Route path="*" element={<NotFound />} />
+
+        </Routes>
+      </Suspense>
     </Router>
-   
   );
 }
 

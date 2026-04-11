@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
 import { User, Bell, Lock, Globe, Palette, Database } from 'lucide-react';
 
-export const AdminSettings = () => {
+ const AdminSettings = () => {
   const [settings, setSettings] = useState({
-    siteName: 'MarketPulse Elite',
+    siteName: 'MarketAcad',
     siteDescription: 'High-fidelity financial intelligence for the modern investor',
     emailNotifications: true,
     postNotifications: false,
@@ -12,9 +12,10 @@ export const AdminSettings = () => {
   });
 
   const handleSave = () => {
-    console.log('Saving settings:', settings);
     // Add save logic here
   };
+
+ const {name, email} = JSON.parse(localStorage.getItem('admin'));
 
   const settingsSections = [
     {
@@ -22,9 +23,9 @@ export const AdminSettings = () => {
       title: 'Profile Settings',
       description: 'Manage your account information',
       fields: [
-        { label: 'Full Name', type: 'text', value: 'Admin User' },
-        { label: 'Email', type: 'email', value: 'admin@marketpulse.com' },
-        { label: 'Role', type: 'text', value: 'Super Admin', disabled: true },
+        { label: 'Full Name', type: 'text', value: name, disabled: true },
+        { label: 'Email', type: 'email', value: email, disabled: true },
+        { label: 'Role', type: 'text', value: 'Admin', disabled: true },
       ],
     },
     {
@@ -168,3 +169,5 @@ export const AdminSettings = () => {
     </AdminLayout>
   );
 };
+
+export default AdminSettings;

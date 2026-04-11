@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AdminLayout } from '../../components/AdminLayout';
 import { TrendingUp, FileText, Eye, Users, ArrowUp, ArrowDown } from 'lucide-react';
 
-export const AdminDashboard = () => {
+ const AdminDashboard = () => {
   const stats = [
     { name: 'Total Posts', value: '48', change: '+12%', trend: 'up', icon: FileText },
     { name: 'Total Views', value: '125.4K', change: '+23%', trend: 'up', icon: Eye },
@@ -81,7 +81,7 @@ export const AdminDashboard = () => {
           <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Link
-              to="/admin/create"
+              to="/admin/blog-post"
               className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
               data-testid="create-post-button"
             >
@@ -164,3 +164,5 @@ export const AdminDashboard = () => {
     </AdminLayout>
   );
 };
+
+export default Dashboard;
