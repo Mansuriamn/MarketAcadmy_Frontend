@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import API_BASE_URL from '../api/config';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Header';
 import { BlogCard } from '../components/ui/BlogCard';
@@ -23,10 +24,10 @@ import QuoteCallout from '../components/QuoteCallout';
       try {
         let url;
         if(page === "news"){
-          url = `/server/api/news/${id}`;
+          url = `${API_BASE_URL}/api/news/${id}`;
         }
         else{
-           url = `/server/api/blogs/${id}`;
+           url = `${API_BASE_URL}/api/blogs/${id}`;
         }
         
         const res = await fetch(url);

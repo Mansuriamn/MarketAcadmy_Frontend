@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE_URL from "../api/config";
 import { TrendingUp, Flame } from "lucide-react";
 
 export default function Headline() {
@@ -16,14 +17,13 @@ export default function Headline() {
       setLoading(true);
       setError(null);
 
-      const res = await fetch("/server/api/get/trending");
+      const res = await fetch(`${API_BASE_URL}/api/get/trending`);
       const result = await res.json();
 
       if (!res.ok || !result.success) {
         throw new Error(result.message || "Failed to fetch headlines");
       }
 
-    console.log(result.data);
       setHeadlines(result.data);
      
       

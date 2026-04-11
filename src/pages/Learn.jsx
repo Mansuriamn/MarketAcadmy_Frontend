@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import API_BASE_URL from '../api/config';
 import { PageTabs } from '../data/PageTabs';
 import {  quickGuideSteps } from "../data/adverData";
 import { Play, ArrowRight, TrendingUp, ChevronRight } from "lucide-react";
@@ -40,16 +41,16 @@ const Learn =()=> {
 
       if (query.trim().length >= 2) {
         // ✅ Case 1: Search — ignores category filter while searching
-        url = `/server/api/courses/search?q=${encodeURIComponent(query.trim())}`;
+        url = `${API_BASE_URL}/api/courses/search?q=${encodeURIComponent(query.trim())}`;
 
       } else if (category === "All Insights") {
         // ✅ Case 2: No search, all categories
-        url = `/server/api/courses?limit=${LIMIT}&offset=${offset}`;
+        url = `${API_BASE_URL}/api/courses?limit=${LIMIT}&offset=${offset}`;
 
       } else {
         
         // ✅ Case 3: No search, specific category
-        url = `/server/api/courses/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
+        url = `${API_BASE_URL}/api/courses/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
       }
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

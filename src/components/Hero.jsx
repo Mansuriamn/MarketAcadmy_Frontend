@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'; 
+import API_BASE_URL from '../api/config';
 
 const LIMIT = 1; const offset =0;
 const Hero = ({ page }) => {
@@ -6,7 +7,7 @@ const Hero = ({ page }) => {
   const [post, setPost] = useState(null);
 
   useEffect(() => {
-    fetch(`/server/api/${page}?limit=${LIMIT}&offset=${offset}`)
+    fetch(`${API_BASE_URL}/api/${page}?limit=${LIMIT}&offset=${offset}`)
       .then(res => res.json())
       .then(data => {
         setPost(data);

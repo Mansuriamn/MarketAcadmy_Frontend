@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import API_BASE_URL from '../api/config';
 import Navbar from '../components/Header';
 import Footer from '../components/Footer';
 import Hero from '../components/Hero';
@@ -43,15 +44,15 @@ const Home = () =>{
 
       if (query.trim().length >= 2) {
         // ✅ Case 1: Search — ignores category filter while searching
-        url = `/server/api/blogs/search?q=${encodeURIComponent(query.trim())}`;
+        url = `${API_BASE_URL}/api/blogs/search?q=${encodeURIComponent(query.trim())}`;
 
       } else if (category === "All Insights") {
         // ✅ Case 2: No search, all categories
-        url = `/server/api/blogs?limit=${LIMIT}&offset=${offset}`;
+        url = `${API_BASE_URL}/api/blogs?limit=${LIMIT}&offset=${offset}`;
 
       } else {
         // ✅ Case 3: No search, specific category
-        url = `/server/api/blogs/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
+        url = `${API_BASE_URL}/api/blogs/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
       }
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

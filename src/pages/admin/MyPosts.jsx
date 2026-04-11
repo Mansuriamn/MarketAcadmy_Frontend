@@ -1,5 +1,5 @@
-// pages/admin/MyPosts.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import API_BASE_URL from '../../api/config';
 import { Link } from 'react-router-dom';
 import { AdminLayout } from '../../components/AdminLayout';
 import { Search, Plus, Eye, Trash2, MoreVertical } from 'lucide-react';
@@ -50,10 +50,10 @@ const MyPosts = () => {
 
       if (query.trim().length >= 2) {
         // Search — no pagination params, backend limits internally
-        url = `/server/api/${endpoint}/search?limit=${LIMIT}&offset=${offset}&q=${encodeURIComponent(query.trim())}`;
+        url = `${API_BASE_URL}/api/${endpoint}/search?limit=${LIMIT}&offset=${offset}&q=${encodeURIComponent(query.trim())}`;
       } else {
         // Default — paginated list for this tab's endpoint
-        url = `/server/api/${endpoint}?limit=${LIMIT}&offset=${offset}`;
+        url = `${API_BASE_URL}/api/${endpoint}?limit=${LIMIT}&offset=${offset}`;
       }
 
       const res = await fetch(url);
@@ -141,7 +141,7 @@ const MyPosts = () => {
  async function handleDelete(id){
        
   const endpoint = TAB_ENDPOINTS[activeTab];
-  const res = await fetch(`/server/api/${endpoint}/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
     method: "DELETE",
     credentials: "include",
   });

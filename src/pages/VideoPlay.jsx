@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import API_BASE_URL from "../api/config";
 import {
   Share2,
   Bookmark,
@@ -28,7 +29,7 @@ const VideoPlay = () => {
       try {
         setLoading(true);
  
-        const res = await fetch(`/server/api/courses/${id}`);
+        const res = await fetch(`${API_BASE_URL}/api/courses/${id}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();

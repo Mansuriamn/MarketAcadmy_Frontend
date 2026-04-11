@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_BASE_URL from '../../api/config';
 import { AdminLayout } from '../../components/AdminLayout';
 import { Calendar } from 'lucide-react';
 import Editor from '../../components/Editor';
@@ -33,7 +34,7 @@ const NewsPost =()=> {
       const imageFormData = new FormData();
       imageFormData.append("image", formData.featuredImageFile);
 
-      const uploadRes = await fetch(`/server/upload?page=news`, {
+      const uploadRes = await fetch(`${API_BASE_URL}/upload?page=news`, {
         method: "POST",
         credentials: "include", // Added for consistency
         body: imageFormData
@@ -42,7 +43,7 @@ const NewsPost =()=> {
       const uploadData = await uploadRes.json();
 
       if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-      const postRes = await fetch(`/server/api/news/create`, {
+      const postRes = await fetch(`${API_BASE_URL}/api/news/create`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

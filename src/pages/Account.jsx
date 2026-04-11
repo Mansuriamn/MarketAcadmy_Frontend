@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API_BASE_URL from "../api/config";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -29,7 +30,7 @@ const Account =()=> {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`/server/api/admin/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

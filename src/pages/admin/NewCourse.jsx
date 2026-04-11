@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import API_BASE_URL from "../../api/config";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Video, Clock, Link as LinkIcon } from "lucide-react";
@@ -45,7 +46,7 @@ const [publishing, setPublishing] = useState(false);
       const imageFormData = new FormData();
       imageFormData.append("image", formData.thumbnail);
 
-      const uploadRes = await fetch(`/server/upload?page=courses`, { 
+      const uploadRes = await fetch(`${API_BASE_URL}/upload?page=courses`, { 
         method: "POST", 
         credentials: "include",
         body: imageFormData 
@@ -54,7 +55,7 @@ const [publishing, setPublishing] = useState(false);
       const uploadData = await uploadRes.json();
       
       if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-      const postRes = await fetch(`/server/api/courses/create`, {
+      const postRes = await fetch(`${API_BASE_URL}/api/courses/create`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

@@ -1,5 +1,6 @@
 import "../App.css";
 import React, { useState , useEffect} from 'react';
+import API_BASE_URL from '../api/config';
 
 const LIMIT = 4;
  const offset =0;
@@ -9,7 +10,7 @@ const [loading, setLoading] = useState(true);
 const [headlines, setHeadlines] = useState([]);
 
   useEffect(() => {
-    fetch(`/server/api/headlines?limit=${LIMIT}&offset=${offset}`)
+    fetch(`${API_BASE_URL}/api/headlines?limit=${LIMIT}&offset=${offset}`)
       .then(res => res.json())
       .then(data => {
         setLoading(false);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import API_BASE_URL from '../api/config';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 export default function JoinCircle() {
@@ -21,7 +22,7 @@ export default function JoinCircle() {
     setIsLoading(true);
     setMessage('');
 
-    const response = await fetch('/server/api/create/email', {
+    const response = await fetch(`${API_BASE_URL}/api/create/email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import API_BASE_URL from "../api/config";
 
 const AuthContext = createContext();
 
@@ -9,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("/server/api/auth/me", {
+        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
           credentials: "include",
         });
 
