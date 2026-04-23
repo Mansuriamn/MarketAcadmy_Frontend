@@ -17,12 +17,14 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.png', 'apple-touch-icon.png', 'maskable-icon.png', 'logo192.png', 'logo512.png'],
         manifest: {
+          id: '/market-academy',
           name: 'Market Academy',
           short_name: 'MarketAcad',
           description: 'Institutional-grade market insights for stocks, crypto, and commodities.',
           theme_color: '#0D9488',
           background_color: '#ffffff',
           display: 'standalone',
+          start_url: '/',
           orientation: 'portrait-primary',
           icons: [
             {
