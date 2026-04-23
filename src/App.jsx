@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
-import {ScrollToTop} from "./components/ScrollToTop";
+import { ScrollToTop } from "./components/ScrollToTop";
 import useRouteChangeProgress from "./hooks/useRouteChangeProgress";
 import OfflineNotice from "./components/OfflineNotice";
 import MobileBottomNav from "./components/MobileBottomNav";
@@ -27,7 +27,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
   useRouteChangeProgress(); // 🚀 Global UX feedback
-  
+
   return (
     <>
       <OfflineNotice />

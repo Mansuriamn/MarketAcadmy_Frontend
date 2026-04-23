@@ -3,7 +3,6 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, X } from 'lucide-react';
 import { navLinks } from '../data/navLinks';
 import SearchBox from './ui/SearchBox';
-import InstallPWA from './InstallPWA';
 const Navbar = ({ searchQuery = "", onSearchChange }) => {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -60,7 +59,6 @@ const Navbar = ({ searchQuery = "", onSearchChange }) => {
 
           {/* Auth */}
           <div className="flex items-center gap-3">
-            <InstallPWA />
             <Link to="/account">
               <button className="px-6  py-2.5 bg-[#0f2a4a] text-white text-[0.95rem] font-semibold rounded-lg 
 hover:bg-[#0d213f] hover:shadow-[0_8px_16px_-6px_rgba(13,33,63,0.4)] hover:-translate-y-[2px] hover:scale-[1.02]
