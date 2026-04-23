@@ -1,18 +1,16 @@
 import { useState } from "react";
-import API_BASE_URL from "../api/config";
+import { apiCall } from "../api/config";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const Account =()=> {
+const Account = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { setUser } = useAuth();
-
-  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -30,30 +28,22 @@ const Account =()=> {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+      const data = await apiCall("/api/admin/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Invalid credentials");
-        return;
-      }
-
+      // apiCall handles !response.ok by throwing an error with the message
       localStorage.setItem("admin", JSON.stringify({
-        name: data.data.user.name,
-        email: data.data.user.email,
+        name: data.user.name,
+        email: data.user.email,
       }));
-      setUser(data.data.user);
+      setUser(data.user);
 
       navigate("/admin/posts");
 
     } catch (err) {
-      setError("Network error. Please try again.");
+      setError(err.message || "Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -195,5 +185,4 @@ const Account =()=> {
   );
 }
 
-
-export default Account
+export default Account;

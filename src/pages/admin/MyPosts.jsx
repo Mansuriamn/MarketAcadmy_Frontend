@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import API_BASE_URL from '../../api/config';
+import { apiCall } from '../../api/config';
 import { Link } from 'react-router-dom';
 import { AdminLayout } from '../../components/AdminLayout';
 import { Search, Plus, Eye, Trash2, MoreVertical } from 'lucide-react';
@@ -9,7 +9,6 @@ import useDebounce from '../../hooks/useDebounce';
 const LIMIT = 7;
 
 // Tab → API endpoint mapping
-// Each tab hits a completely different resource
 const TAB_ENDPOINTS = {
   Blogs:   "blogs",
   News:    "news",
@@ -17,54 +16,34 @@ const TAB_ENDPOINTS = {
 };
 
 const MyPosts = () => {
+  const [activeTab, setActiveTab] = useState("Blogs");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [posts, setPosts] = useState([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // ─── State ──────────────────────────────────────────────────────────────
-  const [activeTab,    setActiveTab]    = useState("Blogs");
-  const [searchQuery,  setSearchQuery]  = useState("");
-  const [posts,        setPosts]        = useState([]);
-  const [page,         setPage]         = useState(0);
-  const [hasMore,      setHasMore]      = useState(true);
-  const [loading,      setLoading]      = useState(false);
-  const [error,        setError]        = useState(null);
-
-  // Debounce search — wait 400ms after user stops typing
   const debouncedQuery = useDebounce(searchQuery, 400);
 
   // ─── Core fetch ─────────────────────────────────────────────────────────
-  /**
-   * Single function handles all cases:
-   * 1. Search active  → /api/{tab}/search?q=...
-   * 2. No search      → /api/{tab}?limit=...&offset=...
-   *
-   * tab switches the entire API endpoint (blogs / news / courses)
-   */
   const fetchPosts = useCallback(async (pageNum, tab, query = "") => {
     setLoading(true);
     setError(null);
 
     try {
-      const offset   = pageNum * LIMIT;
-      const endpoint = TAB_ENDPOINTS[tab]; // "blogs" | "news" | "courses"
-
-      let url;
+      const offset = pageNum * LIMIT;
+      const endpointPrefix = TAB_ENDPOINTS[tab];
+      let endpoint;
 
       if (query.trim().length >= 2) {
-        // Search — no pagination params, backend limits internally
-        url = `${API_BASE_URL}/api/${endpoint}/search?limit=${LIMIT}&offset=${offset}&q=${encodeURIComponent(query.trim())}`;
+        endpoint = `/api/${endpointPrefix}/search?limit=${LIMIT}&offset=${offset}&q=${encodeURIComponent(query.trim())}`;
       } else {
-        // Default — paginated list for this tab's endpoint
-        url = `${API_BASE_URL}/api/${endpoint}?limit=${LIMIT}&offset=${offset}`;
+        endpoint = `/api/${endpointPrefix}?limit=${LIMIT}&offset=${offset}`;
       }
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const incoming = await res.json(); // always an array
-
-      // page 0 → fresh replace | page 1+ → append
+      const incoming = await apiCall(endpoint);
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
-
-      // If we got fewer than LIMIT, there's nothing left to load
       setHasMore(incoming.length === LIMIT);
 
     } catch (err) {
@@ -73,14 +52,9 @@ const MyPosts = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // no deps — tab/query passed as arguments, not closed over
+  }, []);
 
   // ─── Search effect ───────────────────────────────────────────────────────
-  /**
-   * Fires when debounced query changes.
-   * Always resets to page 0 — a new search is a fresh result set.
-   * Skips if query is exactly 1 char (too short to be useful).
-   */
   useEffect(() => {
     if (debouncedQuery.length === 1) return;
 
@@ -89,48 +63,48 @@ const MyPosts = () => {
     setHasMore(true);
     fetchPosts(0, activeTab, debouncedQuery);
 
-  }, [debouncedQuery]); // intentionally excludes activeTab — search is independent
+  }, [debouncedQuery, activeTab, fetchPosts]);
 
   // ─── Tab / mount effect ──────────────────────────────────────────────────
-  /**
-   * Fires on mount and whenever the tab changes.
-   * Skips if an active search is in progress — search takes priority.
-   * Switching tab clears search (see handleTabChange below).
-   */
   useEffect(() => {
-    if (debouncedQuery.length >= 2) return; // search is active, don't override
+    if (debouncedQuery.length >= 2) return;
 
     setPosts([]);
     setPage(0);
     setHasMore(true);
     fetchPosts(0, activeTab, "");
 
-  }, [activeTab, fetchPosts]);
+  }, [activeTab, fetchPosts, debouncedQuery.length]);
 
   // ─── Load More ───────────────────────────────────────────────────────────
   const handleLoadMore = () => {
     if (loading || !hasMore) return;
     const nextPage = page + 1;
     setPage(nextPage);
-    fetchPosts(nextPage, activeTab, debouncedQuery); // carry current search forward
+    fetchPosts(nextPage, activeTab, debouncedQuery);
   };
 
   // ─── Tab switch ──────────────────────────────────────────────────────────
-  /**
-   * Switching tab resets everything including the search query.
-   * This is intentional — search results from "Blogs" don't apply to "News".
-   */
   const handleTabChange = useCallback((tab) => {
     if (tab === activeTab) return;
-    setSearchQuery("");  // clear search so tab effect fires cleanly
+    setSearchQuery("");
     setActiveTab(tab);
   }, [activeTab]);
 
-  // ─── Derived state ───────────────────────────────────────────────────────
-  // No client-side filter needed — server handles all filtering
-  // posts is always the correct result set for current tab + query
+  async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    
+    try {
+      const endpointPrefix = TAB_ENDPOINTS[activeTab];
+      await apiCall(`/api/${endpointPrefix}/delete/${id}`, {
+        method: "DELETE",
+      });
+      fetchPosts(0, activeTab, debouncedQuery);
+    } catch (err) {
+      alert("Failed to delete post: " + err.message);
+    }
+  }
 
-  // ─── Render helpers ──────────────────────────────────────────────────────
   const showSkeleton  = loading && posts.length === 0;
   const showEmpty     = !loading && !error && posts.length === 0;
   const showError     = !loading && !!error;
@@ -138,22 +112,9 @@ const MyPosts = () => {
   const showSpinner   = loading && posts.length > 0;
   const showEndOfFeed = !hasMore && posts.length > 0;
 
- async function handleDelete(id){
-       
-  const endpoint = TAB_ENDPOINTS[activeTab];
-  const res = await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  fetchPosts(0, activeTab, debouncedQuery);
- }
-
   return (
     <AdminLayout>
       <div className="max-w-7xl mx-auto">
-
-        {/* ── Header ────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">My Posts</h1>
@@ -168,11 +129,8 @@ const MyPosts = () => {
           </Link>
         </div>
 
-        {/* ── Search + Tab filters ───────────────────────────────────────── */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
-
-            {/* Search input — controlled, feeds into debounce hook */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -180,11 +138,11 @@ const MyPosts = () => {
                 placeholder={`Search ${activeTab.toLowerCase()}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border bg-gray-100 focus:bg-white border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
+                className="w-full pl-10 pr-4 py-2 border bg-gray-100 focus:bg-white border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+                data-testid="search-posts-input"
               />
             </div>
 
-            {/* Tab buttons — each switches the entire API endpoint */}
             <div className="flex flex-wrap gap-2">
               {Object.keys(TAB_ENDPOINTS).map((tab) => (
                 <button
@@ -200,14 +158,10 @@ const MyPosts = () => {
                 </button>
               ))}
             </div>
-
           </div>
         </div>
 
-        {/* ── Posts table ────────────────────────────────────────────────── */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-
-          {/* ── Skeleton ── */}
           {showSkeleton && (
             <div className="p-6 space-y-3">
               {Array.from({ length: LIMIT }).map((_, i) => (
@@ -216,14 +170,12 @@ const MyPosts = () => {
             </div>
           )}
 
-          {/* ── Error ── */}
           {showError && (
-            <div className="p-6 text-center text-red-500">
+            <div className="p-6 text-center text-red-500 font-medium">
               ⚠️ {error}
             </div>
           )}
 
-          {/* ── Empty ── */}
           {showEmpty && (
             <div className="p-12 text-center text-gray-500">
               {searchQuery
@@ -233,7 +185,6 @@ const MyPosts = () => {
             </div>
           )}
 
-          {/* ── Desktop table ── */}
           {posts.length > 0 && (
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
@@ -252,19 +203,19 @@ const MyPosts = () => {
                         <div className="text-sm font-medium text-gray-900 max-w-md truncate">{post.title}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-xs font-semibold text-gray-600">{post.category}</span>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">{post.category}</span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {new Date(post.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="View">
-                            {/* <Eye className="w-4 h-4 text-gray-600" /> */}
-                          </button>
                           <button 
-                            onClick={() => handleDelete(post._id)} className="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                            <Trash2 className="w-4 h-4 text-red-500" />
+                            onClick={() => handleDelete(post._id)} 
+                            className="p-2 hover:bg-red-50 rounded-lg transition-colors group" 
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
                           </button>
                         </div>
                       </td>
@@ -275,7 +226,6 @@ const MyPosts = () => {
             </div>
           )}
 
-          {/* ── Mobile cards ── */}
           {posts.length > 0 && (
             <div className="md:hidden divide-y divide-gray-200">
               {posts.map((post) => (
@@ -293,10 +243,10 @@ const MyPosts = () => {
                     {new Date(post.createdAt).toLocaleDateString()}
                   </p>
                   <div className="flex gap-2">
-                    <button className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors">
-                      View
-                    </button>
-                    <button className="flex-1 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-medium transition-colors">
+                    <button 
+                      onClick={() => handleDelete(post._id)} 
+                      className="flex-1 px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 text-sm font-medium transition-colors"
+                    >
                       Delete
                     </button>
                   </div>
@@ -305,16 +255,14 @@ const MyPosts = () => {
             </div>
           )}
 
-          {/* ── Append spinner ── */}
           {showSpinner && (
             <div className="flex justify-center py-6">
-              <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
-          {/* ── Load More ── */}
           {showLoadMore && (
-            <div className="p-4 border-t border-gray-100">
+            <div className="p-4 border-t border-gray-100 text-center">
               <MoreButton
                 handleLoadMore={handleLoadMore}
                 loading={loading}
@@ -323,18 +271,15 @@ const MyPosts = () => {
             </div>
           )}
 
-          {/* ── End of feed ── */}
           {showEndOfFeed && (
-            <p className="text-center text-gray-400 text-sm py-6 border-t border-gray-100">
+            <p className="text-center text-gray-400 text-sm py-6 border-t border-gray-100 italic">
               You've seen all {activeTab.toLowerCase()}.
             </p>
           )}
-
         </div>
       </div>
     </AdminLayout>
   );
 };
-
 
 export default MyPosts;

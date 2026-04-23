@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import API_BASE_URL from '../api/config';
+import { apiCall } from '../api/config';
+import { stripHtml } from '../utils/stripHtml';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Header';
 import { BlogCard } from '../components/ui/BlogCard';
@@ -12,37 +13,66 @@ import BackBotton from '../components/ui/BackBotton';
 import DOMPurify from "dompurify";
 import QuoteCallout from '../components/QuoteCallout';
 
- const BlogDetail = () => {
+const BlogDetail = () => {
   const { page, id } = useParams();
   const [post, setPosts] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 🚀 SEO Utility: Dynamically update meta tags for social share previews
+  const updateMetaTag = (property, content) => {
+    let tag = document.querySelector(`meta[property="${property}"]`) || 
+              document.querySelector(`meta[name="${property}"]`);
+    if (!tag) {
+      tag = document.createElement('meta');
+      if (property.startsWith('og:')) tag.setAttribute('property', property);
+      else tag.name = property;
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute("content", content);
+  };
 
   useEffect(() => {
     const fetchPost = async () => {
-   
       try {
-        let url;
-        if(page === "news"){
-          url = `${API_BASE_URL}/api/news/${id}`;
-        }
-        else{
-           url = `${API_BASE_URL}/api/blogs/${id}`;
-        }
-        
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
         setLoading(true);
-        const incoming = await res.json();
-        setPosts(incoming);
-        setLoading(false);
+
+        let endpoint;
+        if (page === "news") {
+          endpoint = `/api/news/${id}`;
+        } else if (page === "blogs") {
+          endpoint = `/api/blogs/${id}`;
+        } else {
+          endpoint = `/api/get/trending/${id}`;
+        }
+
+        const documentData = await apiCall(endpoint);
+        setPosts(documentData);
+        
+        // 🚀 SEO: Update dynamic page title & meta
+        if (documentData?.title) {
+          document.title = `${documentData.title} | MarketAcademy`;
+          
+          const plainText = stripHtml(documentData.description).slice(0, 160);
+          
+          updateMetaTag('description', plainText);
+          updateMetaTag('og:title', documentData.title);
+          updateMetaTag('og:description', plainText);
+          updateMetaTag('og:image', documentData.image);
+          updateMetaTag('twitter:card', 'summary_large_image');
+        }
       } catch (err) {
         console.error("fetchPosts error:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPost();
+    
+    // Cleanup title on unmount
+    return () => {
+      document.title = "MarketAcademy | Precision Insights";
+    };
   }, [page, id]);
 
   if (loading) {
@@ -58,7 +88,6 @@ import QuoteCallout from '../components/QuoteCallout';
     );
   };
 
-
   if (!post) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -73,88 +102,53 @@ import QuoteCallout from '../components/QuoteCallout';
     );
   }
 
-
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-
-      {/* Breadcrumb */}
       <BackBotton />
 
-      {/* Article Content */}
       <article className="py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2">
-              {/* Category & Breadcrumb */}
               <div className="mb-4">
                 <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                   {post.category}
                 </span>
               </div>
 
-
-              {/* Title */}
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight" data-testid={`article-title-${id}`}>
                 {post.title}
               </h1>
 
-              {/* Featured Chart/Image */}
               <div className="relative mb-8 rounded-xl overflow-hidden bg-slate-900">
                 <img
                   src={post.image}
-                
-                  className="w-full h-auto"
+                  alt="blog"
+                  className="w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[420px] xl:h-[480px] object-cover transition-transform duration-500 hover:scale-105"
                 />
               </div>
 
-              {/* Article Introduction */}
               <div className="prose prose-lg max-w-none mb-8">
-               <div
-  className="text-lg text-gray-700 leading-relaxed"
-  dangerouslySetInnerHTML={{ __html: post.description }}
-/>
+                <div
+                  className="text-lg text-gray-700 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.description) }}
+                />
               </div>
 
-              {/* Section Heading */}
-              {/* <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">The End of the Zero-Bound Era</h2>
-                <p className="text-gray-700 leading-relaxed mb-4">
-                  The transition from a zero-interest rate environment to a structural floor of 3-4% has redefined how capital is allocated. Unlike the post-2008 era (when the TINA "There Is No Alternative" mantra drove equities to historic valuations), today, the resurgence of fixed income as a viable yield-generator is siphoning speculative capital away from growth stocks.
-                </p>
-              </div> */}
-
-              {/* Quote Callout */}
-             <QuoteCallout />
-
-            
-
-              {/* Additional Content */}
-             
+              <QuoteCallout />
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-6">
-              {/* Live Pulse Widget */}
-              <LivePulse />
-
-              {/* Newsletter Signup */}
               <Join />
-
-              {/* Social Links */}
-              <SocialLinks />
             </div>
           </div>
         </div>
       </article>
 
-      {/* Continue Reading Section */}
-
-      {/* Footer */}
       <Footer />
     </div>
   );
 };
 
-export default BlogDetail
+export default BlogDetail;

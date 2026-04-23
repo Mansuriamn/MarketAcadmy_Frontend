@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import API_BASE_URL from '../api/config';
+import { apiCall } from '../api/config';
 import Navbar from '../components/Header';
 import Footer from '../components/Footer';
 import Hero from '../components/Hero';
 import BreakingNewsTicker from '../components/BreakingNewsTicker';
 import CategorieButtons from '../components/ui/CategorieButtons';
 import { PageTabs } from '../data/PageTabs';
-import Headline from '../advertise/Headline';
+import Headline from '../advertise/CryptoNews';
 import { TrendingNow } from '../data/adverData';
 import Membership from '../advertise/Membership';
 import TrustSection from '../advertise/TrustSection';
@@ -30,37 +30,22 @@ const News =() => {
   const debouncedQuery = useDebounce(searchQuery, 400);
 
   // ─── Single unified fetch ──────────────────────────────────────────────
-  /**
-   * One function handles all three cases:
-   * 1. Search query present → /api/blogs/search?q=...
-   * 2. Category selected    → /api/blogs/category?category=...
-   * 3. Default              → /api/blogs
-   */
   const fetchPosts = useCallback(async (pageNum, category, query = "") => {
     setLoading(true);
 
     try {
       const offset = pageNum * LIMIT;
-
-      let url;
+      let endpoint;
 
       if (query.trim().length >= 2) {
-        // ✅ Case 1: Search — ignores category filter while searching
-        url = `${API_BASE_URL}/api/news/search?q=${encodeURIComponent(query.trim())}`;
-
+        endpoint = `/api/news/search?q=${encodeURIComponent(query.trim())}`;
       } else if (category === "All Insights") {
-        // ✅ Case 2: No search, all categories
-        url = `${API_BASE_URL}/api/news?limit=${LIMIT}&offset=${offset}`;
-
+        endpoint = `/api/news?limit=${LIMIT}&offset=${offset}`;
       } else {
-        // ✅ Case 3: No search, specific category
-        url = `${API_BASE_URL}/api/news/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
+        endpoint = `/api/news/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
       }
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const incoming = await res.json(); // ✅ always an array from backend
+      const incoming = await apiCall(endpoint);
 
       // page 0 → replace | page 1+ → append
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
@@ -75,11 +60,6 @@ const News =() => {
   
 
   // ─── Search effect ─────────────────────────────────────────────────────
-  /**
-   * Fires when debounced search query changes.
-   * Skips if exactly 1 char (too short).
-   * Resets to page 0 on every new search.
-   */
   useEffect(() => {
     if (debouncedQuery.length === 1) return; // too short, skip
 
@@ -88,14 +68,9 @@ const News =() => {
     setHasMore(true);
     fetchPosts(0, activeCategory, debouncedQuery);
 
-  }, [debouncedQuery]); // ✅ only fires when query changes, not on category
+  }, [debouncedQuery, activeCategory, fetchPosts]);
 
   // ─── Category / mount effect ────────────────────────────────────────────
-  /**
-   * Fires on mount and whenever category tab changes.
-   * Does NOT fire when search changes (debouncedQuery not in deps).
-   * Skips if an active search is running — search takes priority.
-   */
   useEffect(() => {
     if (debouncedQuery.length >= 2) return; // ✅ don't override active search
 
@@ -104,7 +79,7 @@ const News =() => {
     setHasMore(true);
     fetchPosts(0, activeCategory, "");
 
-  }, [activeCategory, fetchPosts]);
+  }, [activeCategory, fetchPosts, debouncedQuery.length]);
 
   // ─── Load More ──────────────────────────────────────────────────────────
   const handleLoadMore = () => {
@@ -120,7 +95,7 @@ const News =() => {
     setSearchQuery("");       // ✅ clear search when switching category
     setActiveCategory(category);
   }, [activeCategory]);
-
+  
 
   return (
     <>

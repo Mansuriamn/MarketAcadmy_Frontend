@@ -91,21 +91,11 @@ export const AdminLayout = ({ children }) => {
 
       {/* Main content */}
       <div className="lg:pl-64">
-        {/* Top header */}
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+        {/* Top header - Hidden on mobile */}
+        <header className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-4 py-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-              data-testid="mobile-menu-button"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
             <div className="flex-1" />
             <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-100 rounded-lg" data-testid="search-button">
-                {/* <Search className="w-5 h-5 text-gray-600" /> */}
-              </button>
               <button className="p-2 hover:bg-gray-100 rounded-lg relative" data-testid="notifications-button">
                 <Bell className="w-5 h-5 text-gray-600" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
@@ -114,8 +104,8 @@ export const AdminLayout = ({ children }) => {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="p-4 md:p-6 lg:p-8">{children}</main>
+        {/* Page content - Added bottom padding on mobile */}
+        <main className="p-4 md:p-6 lg:p-8 pb-32 lg:pb-8">{children}</main>
       </div>
     </div>
   );

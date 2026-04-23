@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import API_BASE_URL from '../../api/config';
+import { apiCall } from '../../api/config';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '../../components/AdminLayout';
 import { Calendar } from 'lucide-react';
@@ -38,35 +38,24 @@ import{PageTabs} from '../../data/PageTabs';
       const imageFormData = new FormData();
       imageFormData.append("image", formData.featuredImageFile);
 
-      const uploadRes = await fetch(`${API_BASE_URL}/upload?page=blogs`, {
+      const uploadData = await apiCall("/upload?page=blogs", {
         method: "POST",
-        credentials: "include",
         body: imageFormData
       });
 
-      const uploadData = await uploadRes.json();
-
-      if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-      const postRes = await fetch(`${API_BASE_URL}/api/blogs/create`, {
+      // STEP 2: Create the post
+      await apiCall("/api/blogs/create", {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: formData.title,
           description: formData.content,
           image: uploadData.url, // Use the secure URL from Cloudinary
           category: formData.category
-
         }),
       });
 
-      if (!postRes.ok) {
-        const errData = await postRes.json();
-        throw new Error(errData.message || "Failed to publish post");
-      }
-
-      alert("Blog published successfully!");
-      window.location.reload();
+      alert("Blog published successfully! 🎉");
+      navigate("/admin/my-posts"); // Standard senior dev practice: redirect to list
 
     } catch (err) {
       alert(err.message);

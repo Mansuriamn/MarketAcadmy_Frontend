@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Header';
 import Footer from '../components/Footer';
-import { values, stats } from '../data/adverData';
+import { stats } from '../data/adverData';
 import Editorial from '../advertise/Editorial';
 import Curators from '../components/ui/Curators';
 import JoinCircle from '../advertise/JoinCircle';
+import Owner from "../assets/Owner.png"
+const About = () => {
 
- const About = () => {
- 
 
 
   return (
@@ -25,27 +25,39 @@ import JoinCircle from '../advertise/JoinCircle';
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+            {/* Left Content */}
             <div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight" data-testid="hero-title">
-                Democratizing
-                <br />
-                Financial Intelligence
+              <h1
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
+                data-testid="hero-title"
+              >
+                About Me
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
-                Market Plus Academy is a professional financial education and market support platform dedicated to helping individuals learn, understand, and grow in the stock market.
+
+              <p className="text-lg md:text-xl text-gray-600 leading-relaxed mb-4">
+                Nadeem Mansoori is a Financial Distributor, Trader, and Influencer with over 6 years of experience in the stock market. He has successfully guided 1000+ clients in their investment journey across Demat accounts, Mutual Funds, Insurance, and Loans.
               </p>
-             
-               <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
-               Our mission is to empower traders and investors with the right knowledge, practical strategies, and disciplined risk management to achieve consistent growth.
+
+              <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
+                His mission is simple — to provide real and honest guidance, just like he would invest his own money. Unlike others, he focuses on building strong trading psychology and helping clients make smart, long-term financial decisions.
+                He works with beginners, long-term investors, and traders, ensuring that every client gets the right direction without confusion.
+              </p>
+              <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
+                NISM Certified | MBA in Finance
+
               </p>
             </div>
+
+            {/* Right Image */}
             <div className="hidden lg:block">
               <img
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop"
-              
-                className="rounded-2xl shadow-2xl"
+                src={Owner}
+                alt="Market Plus Academy Founder"
+                className="rounded-2xl w-full max-h-[33rem]  shadow-2xl"
               />
             </div>
+
           </div>
         </div>
       </section>
@@ -71,7 +83,7 @@ import JoinCircle from '../advertise/JoinCircle';
             <div className="order-2 lg:order-1">
               <img
                 src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop"
-               
+
                 className="rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -109,13 +121,13 @@ import JoinCircle from '../advertise/JoinCircle';
       </section>
 
       {/* Editorial Integrity Section */}
-     <Editorial />
+      <Editorial />
 
       {/* Team Section */}
-    <Curators />
+      {/* <Curators /> */}
 
       {/* Newsletter CTA Section */}
-     <JoinCircle />
+      <JoinCircle />
 
       {/* Footer */}
       <Footer />

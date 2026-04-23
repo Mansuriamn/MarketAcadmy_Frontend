@@ -1,76 +1,102 @@
-import React, { memo } from 'react';
-import { Link } from 'react-router-dom';
-import { Clock } from 'lucide-react';
+import React, { memo } from "react";
+import { Link } from "react-router-dom";
+import { Clock, Eye } from "lucide-react";
 
-const categoryColors = {
-  teal: 'bg-teal-100 text-teal-700',
-  orange: 'bg-orange-100 text-orange-700',
-  green: 'bg-green-100 text-green-700',
-  blue: 'bg-blue-100 text-blue-700',
-  purple: 'bg-purple-100 text-purple-700',
-  amber: 'bg-amber-100 text-amber-700',
-  navy: 'bg-slate-100 text-slate-700'
+// 🧠 reusable truncate
+const truncateText = (text = "", maxLength) =>
+  text.length <= maxLength
+    ? text
+    : text.slice(0, maxLength).trim() + "...";
+
+// 🕒 format date
+const formatDate = (date) => {
+  if (!date) return "";
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 };
 
-const getCategoryColor = (color) => {
-  return categoryColors[color] || categoryColors.teal;
-};
+import { stripHtml } from "../../utils/stripHtml";
 
-// ✅ reusable truncate function
-const truncateText = (text = "", maxLength) => {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + "...";
-};
-
-const BlogCardComponent = ({ post ,page}) => {
+const BlogCardComponent = ({ post, page }) => {
   if (!post) return null;
 
-  const { _id, title, category, excerpt, description, image, categoryColor } = post;
-  
-  // 📸 Reliable Fallback
-  const imageUrl = image || 'https://images.unsplash.com/photo-1611974717482-98287e074b35?auto=format&fit=crop&q=80&w=800';
+  const {
+    _id,
+    title,
+    category,
+    description,
+    image,
+    // categoryColor,
+    publishedAt,
+    // views,
+  } = post;
 
-  const categoryStyle = getCategoryColor(categoryColor);
+  const imageUrl =
+    image ||
+    "https://images.unsplash.com/photo-1611974717482-98287e074b35?auto=format&fit=crop&q=80&w=800";
 
-  // ✅ controlled truncation
-  const shortTitle = title.length > 70 
-    ? title.slice(0, 70) + "..." 
-    : title;
+  // const categoryStyle = getCategoryColor(categoryColor);
 
-  const textContent = excerpt || description || "";
-  const shortExcerpt = textContent.length > 100
-    ? textContent.slice(0, 100) + "..."
-    : textContent;
+  const shortTitle = truncateText(title, 65);
+  const shortExcerpt = truncateText(stripHtml(description), 110);
 
   return (
-    <Link to={`/${page}/${_id}`} className="group" data-testid={`blog-card-${_id}`}>
-      <div className="bg-white rounded-2xl overflow-hidden premium-shadow hover-lift transition-all duration-300 h-full flex flex-col border border-slate-100">
+    <Link
+      to={`/${page}/${_id}`}
+      className="group block"
+      data-testid={`blog-card-${_id}`}
+    >
+      <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
 
-        {/* Image */}
+        {/* 📸 Image */}
         <div className="relative h-52 overflow-hidden">
           <img
             src={imageUrl}
-            
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-60" />
-          <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500 text-white shadow-lg">
+
+          {/* subtle overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+
+          {/* category badge */}
+          <span
+            className="bg-teal-500 backdrop-blur-md px-4 py-1.5 text-[10px] rounded-full text-white font-bold uppercase tracking-widest shadow-lg"
+          >
             {category}
           </span>
         </div>
 
-        {/* Content */}
-        <div className="p-6 flex-1 flex flex-col">
-          <h3 className="text-lg font-bold text-slate-900 mb-3 leading-snug group-hover:text-slate-500 transition-colors">
+        {/* 📝 Content */}
+        <div className="p-5 flex flex-col flex-1">
+          <h3 className="text-[17px] font-semibold text-slate-900 leading-snug mb-2 group-hover:text-slate-400 transition">
             {shortTitle}
           </h3>
-          <p className="text-slate-500 text-sm mb-4 flex-1 line-clamp-3 leading-relaxed">
+
+          <p className="text-sm text-slate-500 leading-relaxed flex-1 line-clamp-3">
             {shortExcerpt}
           </p>
         </div>
 
+        {/* 📊 Footer */}
+        <div className="px-5 pb-5 flex items-center justify-between text-xs text-slate-400">
 
+          {/* date */}
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-4 h-4" />
+            <span>{formatDate(publishedAt)}</span>
+          </div>
+
+          {/* views */}
+          {/* <div className="flex items-center gap-1.5">
+            <Eye className="w-4 h-4" />
+            <span>{views || 0} views</span>
+          </div> */}
+
+        </div>
       </div>
     </Link>
   );

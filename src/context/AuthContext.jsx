@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import API_BASE_URL from "../api/config";
+import { apiCall } from "../api/config";
 
 const AuthContext = createContext();
 
@@ -7,32 +7,48 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          credentials: "include",
-        });
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("admin");
+    // Optionally redirect: window.location.href = "/account";
+  };
 
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.data?.user || data.user || null);
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      console.warn("Session expired or invalid. Logging out...");
+      logout();
+    };
+
+    window.addEventListener("api:401", handleUnauthorized);
+
+    const checkAuth = async () => {
+      // Senior Dev: Optimization - only verify session if we have a local tag (hint)
+      const hasAdminHint = localStorage.getItem("admin");
+      
+      if (!hasAdminHint) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await apiCall("/api/auth/me", { silent: true });
+        setUser(data?.user || null);
+      } catch {
+        // If the server says 401 but we had a hint, the session actually expired
         setUser(null);
+        localStorage.removeItem("admin");
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
+    
+    return () => window.removeEventListener("api:401", handleUnauthorized);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React from "react";
 import { Search } from "lucide-react";
 
 export default function SearchBox({ value, onChange, placeholder = "Search..." }) {

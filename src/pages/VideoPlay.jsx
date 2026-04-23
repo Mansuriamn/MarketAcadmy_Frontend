@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import API_BASE_URL from "../api/config";
+import { apiCall } from "../api/config";
 import {
   Share2,
   Bookmark,
@@ -14,6 +14,8 @@ import Footer from "../components/Footer";
 import BackBotton from "../components/ui/BackBotton";
 import { useParams } from "react-router-dom";
 import QuoteCallout from "../components/QuoteCallout";
+import Trending from "../advertise/Trending";
+import Join from "../advertise/Join";
 
 const VideoPlay = () => {
   const { id } = useParams();
@@ -28,13 +30,8 @@ const VideoPlay = () => {
     const fetchLesson = async () => {
       try {
         setLoading(true);
- 
-        const res = await fetch(`${API_BASE_URL}/api/courses/${id}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const data = await res.json();
+        const data = await apiCall(`/api/courses/${id}`);
         setLesson(data);
-
       } catch (err) {
         setError(err.message);
       } finally {
@@ -44,6 +41,20 @@ const VideoPlay = () => {
 
     fetchLesson();
   }, [id]);
+
+  // ✅ YouTube Embed Helper
+  const getEmbedUrl = (url) => {
+    if (!url) return "";
+    let videoId = "";
+    if (url.includes("v=")) {
+      videoId = url.split("v=")[1].split("&")[0];
+    } else if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1].split("?")[0];
+    } else if (url.includes("/embed/")) {
+      return url; // already embed
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  };
 
   // ✅ Loading UI
   if (loading) {
@@ -90,7 +101,7 @@ const VideoPlay = () => {
 
           {/* LEFT SECTION */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="my-6 pl-3 sm:my-8 max-w-3xl">
+          <div className="mb-4 pl-3 max-w-3xl">
 
               {/* Meta row */}
               <div className="flex items-center gap-3 mb-3.5">
@@ -137,8 +148,8 @@ const VideoPlay = () => {
               ) : (
                 <iframe
                   className="w-full aspect-video"
-                  src={`${lesson?.url}?autoplay=1`}
-                  allow="autoplay"
+                  src={`${getEmbedUrl(lesson?.url)}?autoplay=1`}
+                  allow="autoplay; encrypted-media"
                   allowFullScreen
                   title="video"
                 />
@@ -178,8 +189,8 @@ const VideoPlay = () => {
           </div>
 
           {/* RIGHT SIDEBAR */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm p-5">
+          <div className="space-y-6 lg:mt-[136px]">
+            {/* <div className="bg-white rounded-2xl shadow-sm p-5">
               <h4 className="text-xs font-semibold text-gray-500 mb-3">
                 LESSON RESOURCES
               </h4>
@@ -195,7 +206,8 @@ const VideoPlay = () => {
                   <Download size={16} />
                 </div>
               </div>
-            </div>
+            </div> */}
+            <Join/>
           </div>
 
         </div>

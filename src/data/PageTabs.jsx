@@ -14,7 +14,7 @@ export const PageTabs = {
     "crypto",
     "economy",
     "global",
-    
+    "commodity"
   ],
   course: [
     "All Insights",

@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import API_BASE_URL from "../../api/config";
+import { apiCall } from "../../api/config";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "../../components/AdminLayout";
 import { Video, Clock, Link as LinkIcon } from "lucide-react";
 import ImageUploader from "../../components/ImageUploader";
-import{PageTabs} from '../../data/PageTabs';
+import { PageTabs } from '../../data/PageTabs';
 import Editor from '../../components/Editor';
 
-
-const NewCourse =()=> {
-
+const NewCourse = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -19,7 +18,7 @@ const NewCourse =()=> {
     category: "",
   });
 
-const [publishing, setPublishing] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -42,42 +41,31 @@ const [publishing, setPublishing] = useState(false);
     try {
       setPublishing(true);
 
-      // STEP 1: Upload Image to get the Cloudinary URL
+      // STEP 1: Upload Image to Cloudinary via backend proxy
       const imageFormData = new FormData();
       imageFormData.append("image", formData.thumbnail);
 
-      const uploadRes = await fetch(`${API_BASE_URL}/upload?page=courses`, { 
-        method: "POST", 
-        credentials: "include",
-        body: imageFormData 
-      });
-      
-      const uploadData = await uploadRes.json();
-      
-      if (!uploadRes.ok) throw new Error(uploadData.error || "Image upload failed");
-      const postRes = await fetch(`${API_BASE_URL}/api/courses/create`, {
+      const uploadData = await apiCall("/upload?page=courses", {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        body: imageFormData
+      });
+
+      // STEP 2: Create the course
+      await apiCall("/api/courses/create", {
+        method: "POST",
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
-          image: uploadData.url, // Use the secure URL from Cloudinary
+          image: uploadData.url,
           url: formData.videoUrl,
           category: formData.category,
           duration: formData.duration,
-          
         }),
       });
 
-      if (!postRes.ok) {
-        const errData = await postRes.json();
-        throw new Error(errData.message || "Failed to publish post");
-      }
+      alert("Course published successfully! 🎉");
+      navigate("/admin/my-posts"); // Standard SPA flow
 
-      alert("Course published successfully!");
-      window.location.reload();
-      
     } catch (err) {
       alert(err.message);
     } finally {
@@ -85,19 +73,12 @@ const [publishing, setPublishing] = useState(false);
     }
   };
 
-
   return (
     <AdminLayout>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* MAIN CONTENT */}
           <div className="lg:col-span-2 space-y-6">
-
-            {/* TITLE + META */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-              
-              {/* Title */}
               <div className="mb-5">
                 <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                   COURSE TITLE
@@ -111,9 +92,7 @@ const [publishing, setPublishing] = useState(false);
                 />
               </div>
 
-              {/* Category + Duration */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                     CATEGORY
@@ -122,7 +101,7 @@ const [publishing, setPublishing] = useState(false);
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                   >
                     {PageTabs.course.map((cat, i) => (
                       <option key={i}>{cat}</option>
@@ -134,7 +113,7 @@ const [publishing, setPublishing] = useState(false);
                   <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                     DURATION
                   </label>
-                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg focus-within:ring-1 focus-within:ring-teal-500">
                     <Clock className="w-4 h-4 text-gray-400" />
                     <input
                       name="duration"
@@ -145,23 +124,19 @@ const [publishing, setPublishing] = useState(false);
                     />
                   </div>
                 </div>
-
               </div>
             </div>
 
-            {/* DESCRIPTION */}
-           <Editor
-                         content={formData.description}
-                         setContent={(description) => setFormData({ ...formData, description })}
-                       />
+            <Editor
+              content={formData.description}
+              setContent={(description) => setFormData({ ...formData, description })}
+            />
 
-            {/* VIDEO URL */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
                 VIDEO SOURCE
               </label>
-
-              <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg focus-within:ring-1 focus-within:ring-teal-500">
                 <LinkIcon className="w-4 h-4 text-gray-400" />
                 <input
                   name="videoUrl"
@@ -171,30 +146,22 @@ const [publishing, setPublishing] = useState(false);
                   className="flex-1 text-sm focus:outline-none"
                 />
               </div>
-
               <p className="text-xs text-gray-500 mt-2">
                 Supports YouTube, Vimeo, or direct video links.
               </p>
             </div>
-
           </div>
 
-          {/* SIDEBAR */}
           <div className="space-y-6">
+            <ImageUploader
+              onImageSelect={(file) => setFormData({ ...formData, thumbnail: file })}
+              onImageRemove={() => setFormData({ ...formData, thumbnail: null })}
+            />
 
-            {/* THUMBNAIL */}
-           <ImageUploader
-                         onImageSelect={(file) => setFormData({ ...formData, thumbnail: file })}
-                         onImageRemove={() => setFormData({ ...formData, thumbnail: null })}
-             />
-
-            {/* ACTION BOX */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
-
               <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-4">
                 PUBLISH
               </h3>
-
               <button
                 onClick={handlePublish}
                 disabled={publishing}
@@ -202,21 +169,8 @@ const [publishing, setPublishing] = useState(false);
               >
                 {publishing ? "Publishing..." : "Publish Course"}
               </button>
-
             </div>
-
-            {/* PERFORMANCE TIP */}
-            <div className="bg-teal-50 rounded-xl border border-teal-200 p-6">
-              <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-3">
-                PERFORMANCE TIP
-              </h3>
-              <p className="text-sm text-gray-700">
-                Courses with engaging thumbnails and shorter durations tend to get higher completion rates.
-              </p>
-            </div>
-
           </div>
-
         </div>
       </div>
     </AdminLayout>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AdminLayout } from '../../components/AdminLayout';
 import { TrendingUp, FileText, Eye, Users, ArrowUp, ArrowDown } from 'lucide-react';
 
- const AdminDashboard = () => {
+const AdminDashboard = () => {
   const stats = [
     { name: 'Total Posts', value: '48', change: '+12%', trend: 'up', icon: FileText },
     { name: 'Total Views', value: '125.4K', change: '+23%', trend: 'up', icon: Eye },
@@ -165,4 +165,4 @@ import { TrendingUp, FileText, Eye, Users, ArrowUp, ArrowDown } from 'lucide-rea
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

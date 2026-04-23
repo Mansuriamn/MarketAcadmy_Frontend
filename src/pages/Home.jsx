@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import API_BASE_URL from '../api/config';
+import { apiCall } from '../api/config';
 import Navbar from '../components/Header';
 import Footer from '../components/Footer';
 import Hero from '../components/Hero';
@@ -10,10 +10,11 @@ import MoreButton from '../components/ui/MoreButton';
 import Membership from '../advertise/Membership';
 import TrustSection from '../advertise/TrustSection';
 import ResultsSection from '../advertise/ResultsSection';
-import Headline from '../advertise/Headline';
-import { trustData, resultsData } from '../data/adverData';
+import { trustData, resultsData as __resultsData } from '../data/adverData';
 import { PageTabs } from '../data/PageTabs';
 import useDebounce from '../hooks/useDebounce';
+import { TrendingUp, ShieldCheck, MessageCircle } from "lucide-react";
+
 
 const LIMIT = 10;
 
@@ -39,25 +40,17 @@ const Home = () =>{
 
     try {
       const offset = pageNum * LIMIT;
-
-      let url;
+      let endpoint;
 
       if (query.trim().length >= 2) {
-        // ✅ Case 1: Search — ignores category filter while searching
-        url = `${API_BASE_URL}/api/blogs/search?q=${encodeURIComponent(query.trim())}`;
-
+        endpoint = `/api/blogs/search?q=${encodeURIComponent(query.trim())}`;
       } else if (category === "All Insights") {
-        // ✅ Case 2: No search, all categories
-        url = `${API_BASE_URL}/api/blogs?limit=${LIMIT}&offset=${offset}`;
-
+        endpoint = `/api/blogs?limit=${LIMIT}&offset=${offset}`;
       } else {
-        // ✅ Case 3: No search, specific category
-        url = `${API_BASE_URL}/api/blogs/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
+        endpoint = `/api/blogs/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
       }
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const incoming = await res.json(); // ✅ always an array from backend
+      const incoming = await apiCall(endpoint);
 
       // page 0 → replace | page 1+ → append
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
@@ -85,7 +78,7 @@ const Home = () =>{
     setHasMore(true);
     fetchPosts(0, activeCategory, debouncedQuery);
 
-  }, [debouncedQuery]); // ✅ only fires when query changes, not on category
+  }, [debouncedQuery, activeCategory, fetchPosts]); // ✅ only fires when query changes, not on category
 
   // ─── Category / mount effect ────────────────────────────────────────────
   /**
@@ -101,7 +94,7 @@ const Home = () =>{
     setHasMore(true);
     fetchPosts(0, activeCategory, "");
 
-  }, [activeCategory, fetchPosts]);
+  }, [activeCategory, fetchPosts, debouncedQuery.length]);
 
   // ─── Load More ──────────────────────────────────────────────────────────
   const handleLoadMore = () => {
@@ -128,10 +121,10 @@ const Home = () =>{
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="hidden md:flex flex-col items-start justify-start pt-2 md:pt-5 lg:pt-5 w-full text-left">
           <h1 className="text-3xl sm:pl-2 lg:pl-4 md:text-4xl lg:text-[3.2rem] font-extrabold text-primary tracking-tight leading-[1.1] mb-6 max-w-5xl">
-            Latest Market Insights <br />
-            &{" "}
+            Start Investing Today  <br />
+            with{" "}
             <span className="text-text-muted bg-clip-text text-transparent bg-gradient-to-r from-text-muted to-gray-400">
-              Smart Investing Ideas
+              Expert Guidance
             </span>
           </h1>
         </div>
@@ -208,10 +201,10 @@ const Home = () =>{
 
               {/* Sidebar */}
               <div className="space-y-6">
-                <Headline  />
+                <Trust/>
                 <Membership />
                 <TrustSection data={trustData} />
-                <ResultsSection data={resultsData} />
+                
               </div>
 
             </div>
@@ -225,3 +218,140 @@ const Home = () =>{
 }
 
 export default Home
+
+
+
+
+
+
+  function Trust() {
+  const [activeId, setActiveId] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const points = [
+    {
+      id: 1,
+      title: "Helping 1000+ Clients Grow in Stock Market",
+      summary:
+        "Real Guidance | Strong Trading Psychology | 100% Free Support",
+      icon: TrendingUp,
+    },
+    {
+      id: 2,
+      title: "Start Your Investment Journey Today",
+      summary:
+        "Get step-by-step guidance designed for beginners and serious investors.",
+      icon: MessageCircle,
+    },
+    {
+      id: 3,
+      title: "I guide you the way I invest my own money.",
+      summary:
+        "No fake promises, only real strategies tested in live markets.",
+      icon: ShieldCheck,
+    },
+    {
+      id: 4,
+      title: "Focus on long-term wealth, not quick profits.",
+      summary:
+        "We believe in consistency, discipline, and strong trading psychology.",
+      icon: TrendingUp,
+    },
+  ];
+
+  const handleJoinCommunity = () => {
+    const inviteLink =
+      "https://chat.whatsapp.com/Hcl3srYljmMFnU7aOsMLWH";
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgent
+    );
+
+    if (isMobile) {
+      window.location.href = inviteLink;
+    } else {
+      window.open(inviteLink, "_blank");
+    }
+  };
+
+  const handleJoin = () => {
+    setLoading(true);
+    setTimeout(() => {
+      handleJoinCommunity();
+      setLoading(false);
+    }, 1200);
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300">
+      
+      {/* Tag */}
+      <div className="text-xs font-semibold text-teal-600 mb-2 tracking-wide">
+        TRUST & VALUE
+      </div>
+
+      {/* Heading */}
+      <h3 className="text-xl font-bold text-gray-900 mb-4">
+        Why Choose Our Trading Community
+      </h3>
+
+      {/* Points */}
+      <div className="space-y-4">
+        {points.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <div
+              key={item.id}
+              onMouseEnter={() => setActiveId(item.id)}
+              onMouseLeave={() => setActiveId(null)}
+              className="group flex items-start gap-3 cursor-pointer transition-all duration-300"
+            >
+              {/* Icon */}
+              <div className="bg-teal-50 p-2 rounded-lg group-hover:bg-teal-100 transition">
+                <Icon className="w-5 h-5 text-teal-600" />
+              </div>
+
+              {/* Text */}
+              <div>
+                <p className="text-sm font-semibold text-gray-900">
+                  {item.title}
+                </p>
+
+                <p
+                  className={`text-xs text-gray-500 mt-1 transition-all duration-300 overflow-hidden ${
+                    activeId === item.id
+                      ? "max-h-20 opacity-100"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  {item.summary}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* CTA */}
+      <button
+        onClick={handleJoin}
+        disabled={loading}
+        className={`
+          mt-6 w-full flex items-center justify-center gap-2
+          font-semibold py-3 rounded-lg transition-all duration-200
+          bg-teal-500 hover:bg-teal-600 active:scale-95 text-white
+          ${loading ? "opacity-70 cursor-not-allowed" : ""}
+        `}
+      >
+        {loading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            Processing...
+          </>
+        ) : (
+          "Join WhatsApp Community"
+        )}
+      </button>
+    </div>
+  );
+}

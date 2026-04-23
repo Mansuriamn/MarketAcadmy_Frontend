@@ -1,4 +1,4 @@
-import React, { useCallback, memo } from 'react';
+import React, { memo } from 'react';
 
 const CategorieButtons = ({ handleCategoryChange, activeCategory,categories = [] }) => {
 

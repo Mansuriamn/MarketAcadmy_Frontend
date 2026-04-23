@@ -1,7 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import {ScrollToTop} from "./components/ScrollToTop";
+import useRouteChangeProgress from "./hooks/useRouteChangeProgress";
+import OfflineNotice from "./components/OfflineNotice";
+import MobileBottomNav from "./components/MobileBottomNav";
 
 // Lazy Load Pages (performance boost 🚀)
 const Home = lazy(() => import("./pages/Home"));
@@ -11,6 +14,8 @@ const About = lazy(() => import("./pages/About"));
 const News = lazy(() => import("./pages/News"));
 const Learn = lazy(() => import("./pages/Learn"));
 const VideoPlay = lazy(() => import("./pages/VideoPlay"));
+const StockGuide = lazy(() => import("./pages/StockGuide"));
+
 
 const MyPosts = lazy(() => import("./pages/admin/MyPosts"));
 const CreatePost = lazy(() => import("./pages/admin/CreatePost"));
@@ -21,41 +26,45 @@ const NewCourse = lazy(() => import("./pages/admin/NewCourse"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
+  useRouteChangeProgress(); // 🚀 Global UX feedback
+  
   return (
-    <Router>
+    <>
+      <OfflineNotice />
       <ScrollToTop />
 
-      <Suspense fallback={<div className="text-center p-10">Loading...</div>}>
-        <Routes>
-
-          {/* Public Routes */}
+      <Suspense fallback={<div className="text-center p-10 font-medium text-gray-500 animate-pulse">Loading experience...</div>}>
+        <main className="pb-24 md:pb-0">
+          <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/account" element={<Account />} />
             <Route path="/about" element={<About />} />
             <Route path="/news" element={<News />} />
             <Route path="/learn" element={<Learn />} />
-           
-
-          {/* Safer dynamic routes */}
-          <Route path="/:page/:id" element={<BlogDetail />} />
-          <Route path="/video/:id" element={<VideoPlay />} />
+            <Route path="/stock-guide" element={<StockGuide />} />
 
 
-          {/* Protected Admin Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin/posts" element={<MyPosts />} />
-            <Route path="/admin/blog-post" element={<CreatePost />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="/admin/news-post" element={<NewsPost />} />
-            <Route path="/admin/course-post" element={<NewCourse />} />
-          </Route>
+            {/* Safer dynamic routes */}
+            <Route path="/:page/:id" element={<BlogDetail />} />
+            <Route path="/video/:id" element={<VideoPlay />} />
 
-          {/* 404 Page */}
-          <Route path="*" element={<NotFound />} />
+            {/* Protected Admin Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/admin/posts" element={<MyPosts />} />
+              <Route path="/admin/blog-post" element={<CreatePost />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/news-post" element={<NewsPost />} />
+              <Route path="/admin/course-post" element={<NewCourse />} />
+            </Route>
 
-        </Routes>
+            {/* 404 Page */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
       </Suspense>
-    </Router>
+      <MobileBottomNav />
+    </>
   );
 }
 

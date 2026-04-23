@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import API_BASE_URL from '../api/config';
+import { apiCall } from '../api/config';
 import { PageTabs } from '../data/PageTabs';
 import {  quickGuideSteps } from "../data/adverData";
 import { Play, ArrowRight, TrendingUp, ChevronRight } from "lucide-react";
@@ -25,39 +25,22 @@ const Learn =()=> {
   const debouncedQuery = useDebounce(searchQuery, 400);
 
   // ─── Single unified fetch ──────────────────────────────────────────────
-  /**
-   * One function handles all three cases:
-   * 1. Search query present → /api/blogs/search?q=...
-   * 2. Category selected    → /api/blogs/category?category=...
-   * 3. Default              → /api/blogs
-   */
   const fetchPosts = useCallback(async (pageNum, category, query = "") => {
     setLoading(true);
 
     try {
       const offset = pageNum * LIMIT;
-
-      let url;
+      let endpoint;
 
       if (query.trim().length >= 2) {
-        // ✅ Case 1: Search — ignores category filter while searching
-        url = `${API_BASE_URL}/api/courses/search?q=${encodeURIComponent(query.trim())}`;
-
+        endpoint = `/api/courses/search?q=${encodeURIComponent(query.trim())}`;
       } else if (category === "All Insights") {
-        // ✅ Case 2: No search, all categories
-        url = `${API_BASE_URL}/api/courses?limit=${LIMIT}&offset=${offset}`;
-
+        endpoint = `/api/courses?limit=${LIMIT}&offset=${offset}`;
       } else {
-        
-        // ✅ Case 3: No search, specific category
-        url = `${API_BASE_URL}/api/courses/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
+        endpoint = `/api/courses/category/${category}?limit=${LIMIT}&offset=${offset}&category=${encodeURIComponent(category)}`;
       }
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const incoming = await res.json(); // ✅ always an array from backend
-
-      // page 0 → replace | page 1+ → append
+      const incoming = await apiCall(endpoint);
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
       setHasMore(incoming.length === LIMIT);
 
@@ -70,11 +53,6 @@ const Learn =()=> {
   
 
   // ─── Search effect ─────────────────────────────────────────────────────
-  /**
-   * Fires when debounced search query changes.
-   * Skips if exactly 1 char (too short).
-   * Resets to page 0 on every new search.
-   */
   useEffect(() => {
     if (debouncedQuery.length === 1) return; // too short, skip
 
@@ -83,14 +61,9 @@ const Learn =()=> {
     setHasMore(true);
     fetchPosts(0, activeCategory, debouncedQuery);
 
-  }, [debouncedQuery]); // ✅ only fires when query changes, not on category
+  }, [debouncedQuery, activeCategory, fetchPosts]);
 
   // ─── Category / mount effect ────────────────────────────────────────────
-  /**
-   * Fires on mount and whenever category tab changes.
-   * Does NOT fire when search changes (debouncedQuery not in deps).
-   * Skips if an active search is running — search takes priority.
-   */
   useEffect(() => {
     if (debouncedQuery.length >= 2) return; // ✅ don't override active search
 
@@ -99,7 +72,7 @@ const Learn =()=> {
     setHasMore(true);
     fetchPosts(0, activeCategory, "");
 
-  }, [activeCategory, fetchPosts]);
+  }, [activeCategory, fetchPosts, debouncedQuery.length]);
 
   // ─── Load More ──────────────────────────────────────────────────────────
   const handleLoadMore = () => {

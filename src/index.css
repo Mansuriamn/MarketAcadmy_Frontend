@@ -12,6 +12,16 @@
   --color-text-muted: #64748b;
   --color-glass: rgba(255, 255, 255, 0.7);
   
+  /* Stock Guide Branding */
+  --color-guide-primary: #0d9488;
+  --color-guide-primary-dark: #14b8a6;
+  --color-guide-primary-light: #f0fdfa;
+  --color-guide-bg: #f8fafc;
+  --color-guide-card: #ffffff;
+  --color-guide-border: #e2e8f0;
+  --color-guide-positive: #10b981;
+  --color-guide-negative: #ef4444;
+
   --font-outfit: 'Outfit', sans-serif;
   --font-inter: 'Inter', sans-serif;
 }
@@ -65,6 +75,16 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* 🔥 Animations */
+@keyframes slideDown {
+  from { transform: translate(-50%, -100%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.animate-drop-down {
+  animation: slideDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* 🔥 Autofill Fix */

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import API_BASE_URL from "../api/config";
+import { apiCall } from "../api/config";
 import { TrendingUp, Flame } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Headline() {
   const [headlines, setHeadlines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeId, setActiveId] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchHeadlines();
@@ -17,23 +20,23 @@ export default function Headline() {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${API_BASE_URL}/api/get/trending`);
-      const result = await res.json();
+      const data = await apiCall("/api/get/trending");
+      setHeadlines(data);
 
-      if (!res.ok || !result.success) {
-        throw new Error(result.message || "Failed to fetch headlines");
-      }
-
-      setHeadlines(result.data);
-     
-      
     } catch (err) {
       console.error("Headline Fetch Error:", err);
       setError("Something went wrong while loading headlines");
     } finally {
       setLoading(false);
     }
-   
+  };
+
+  // 🔥 HANDLE CLICK
+  const handleClick = (topic) => {
+    const page="trending";
+    
+    navigate(`/${page}/${topic._id}`); 
+    // You can change "news" → dynamic page if needed
   };
 
   return (
@@ -66,15 +69,16 @@ export default function Headline() {
       <div className="space-y-4">
         {!loading &&
           !error &&
-          headlines.map((topic,id) => (
+          headlines.map((topic) => (
             <div
-              key={id}
+              key={topic._id}
               onMouseEnter={() => setActiveId(topic._id)}
               onMouseLeave={() => setActiveId(null)}
-              className="pb-4 border-b border-gray-100 last:border-0 last:pb-0 flex items-start gap-2 cursor-pointer"
+              onClick={() => handleClick(topic)} // ✅ CLICK NAVIGATION
+              className="pb-4 border-b border-gray-100 last:border-0 last:pb-0 flex items-start gap-2 cursor-pointer hover:bg-gray-50 rounded-md p-2 transition"
             >
               {/* Icon */}
-              <Flame className="w-5 h-5 text-red-500 mt-1" />
+              <Flame className="w-12 h-10 text-red-500 mt-1" />
 
               {/* Content */}
               <div>
@@ -83,7 +87,7 @@ export default function Headline() {
                   {topic.title}
                 </p>
 
-                {/* Summary (hover) */}
+                {/* Description (hover) */}
                 <p
                   className={`text-xs text-gray-500 mt-1 transition-all duration-300 overflow-hidden ${
                     activeId === topic._id
@@ -91,7 +95,7 @@ export default function Headline() {
                       : "max-h-0 opacity-0"
                   }`}
                 >
-                  {topic.summary}
+                  {topic.description} {/* ✅ FIXED */}
                 </p>
               </div>
             </div>
