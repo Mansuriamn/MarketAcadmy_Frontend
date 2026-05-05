@@ -80,6 +80,13 @@ transition-all duration-300 ease-in-out">
             <NavLink
               key={idx}
               to={link.path}
+              onMouseEnter={() => {
+                // 🚀 PREFETCH: Start loading the component code on hover
+                if (link.path === '/learn') import('../pages/Learn');
+                if (link.path === '/news') import('../pages/News');
+                if (link.path === '/stock-guide') import('../pages/StockGuide');
+                if (link.path === '/about') import('../pages/About');
+              }}
               className={({ isActive }) => `px-6 py-[0.4rem] text-[0.95rem] font-bold rounded-full transition-all duration-300 ${isActive
                 ? 'bg-primary text-white shadow-md shadow-primary/20 scale-105'
                 : 'text-text-muted hover:text-primary hover:bg-white hover:shadow-sm hover:scale-105'

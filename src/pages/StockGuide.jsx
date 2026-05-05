@@ -199,6 +199,9 @@ const CandlestickChart = ({ candles, onLoadMore, isLoadingPast }) => {
       onMouseUp={handleMouseUp}
       onMouseLeave={() => { handleMouseUp(); setTooltip(null); }}
       onWheel={handleWheel}
+      onTouchStart={(e) => handleMouseDown(e.touches[0])}
+      onTouchMove={(e) => handleMouseMove(e.touches[0])}
+      onTouchEnd={handleMouseUp}
     >
       {/* Scroll indicator for loading state */}
       {isLoadingPast && (
@@ -502,6 +505,8 @@ const StockGuide = () => {
     const rawSearch = searchQuery.trim().toUpperCase();
     const all = [...INITIAL_STOCKS, ...customStocks];
     let filtered = all.filter(s => s.id.includes(rawSearch) || s.name.toUpperCase().includes(rawSearch));
+    
+    // If we have a exact match or a potential new symbol, ensure it's selectable
     if (rawSearch && !all.some(s => s.id === rawSearch)) {
       filtered.push({ id: rawSearch, name: `🔍 Search: ${rawSearch}`, isSearchPlaceholder: true });
     }

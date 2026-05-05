@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ScrollToTop } from "./components/ScrollToTop";
-import useRouteChangeProgress from "./hooks/useRouteChangeProgress";
+import LoadingFallback from "./components/LoadingFallback";
 import OfflineNotice from "./components/OfflineNotice";
 import MobileBottomNav from "./components/MobileBottomNav";
 
@@ -26,14 +26,13 @@ const NewCourse = lazy(() => import("./pages/admin/NewCourse"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
-  useRouteChangeProgress(); // 🚀 Global UX feedback
 
   return (
     <>
       <OfflineNotice />
       <ScrollToTop />
 
-      <Suspense fallback={<div className="text-center p-10 font-medium text-gray-500 animate-pulse">Loading experience...</div>}>
+      <Suspense fallback={<LoadingFallback />}>
         <main className="pb-24 md:pb-0">
           <Routes>
             {/* Public Routes */}

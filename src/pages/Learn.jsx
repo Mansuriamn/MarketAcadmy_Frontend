@@ -12,9 +12,12 @@ import Trending from "../advertise/Trending";
 import MoreButton from "../components/ui/MoreButton";
 import Guide from "../advertise/Guide";
 import useDebounce from '../hooks/useDebounce';
+import { useDataCache } from '../context/CacheContext';
+import BlogSkeleton from '../components/ui/BlogSkeleton';
 
 const LIMIT = 10;
 const Learn =()=> {
+  const { getCachedData, setCachedData } = useDataCache();
   const [searchQuery, setSearchQuery]       = useState("");
   const [activeCategory, setActiveCategory] = useState("All Insights");
   const [posts, setPosts]                   = useState([]);
@@ -26,12 +29,21 @@ const Learn =()=> {
 
   // ─── Single unified fetch ──────────────────────────────────────────────
   const fetchPosts = useCallback(async (pageNum, category, query = "") => {
-    setLoading(true);
+    const offset = pageNum * LIMIT;
+    const cacheKey = `posts-${category}-${query}-${pageNum}`;
+    
+    // 🚀 INSTANT UI: If we have cached data, show it immediately
+    const cached = getCachedData(cacheKey);
+    if (cached && pageNum === 0) {
+      setPosts(cached);
+      setHasMore(cached.length === LIMIT);
+      // We still proceed to fetch fresh data in the background
+    } else if (!cached) {
+      setLoading(true);
+    }
 
     try {
-      const offset = pageNum * LIMIT;
       let endpoint;
-
       if (query.trim().length >= 2) {
         endpoint = `/api/courses/search?q=${encodeURIComponent(query.trim())}`;
       } else if (category === "All Insights") {
@@ -41,15 +53,19 @@ const Learn =()=> {
       }
 
       const incoming = await apiCall(endpoint);
+      
+      // Update state and cache
+      const newPosts = pageNum === 0 ? incoming : [...posts, ...incoming];
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
       setHasMore(incoming.length === LIMIT);
+      setCachedData(cacheKey, incoming); // only cache the "chunk"
 
     } catch (err) {
       console.error("fetchPosts error:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getCachedData, setCachedData]);
   
 
   // ─── Search effect ─────────────────────────────────────────────────────
@@ -139,7 +155,7 @@ const Learn =()=> {
                           {loading && posts.length === 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               {Array.from({ length: LIMIT }).map((_, i) => (
-                                <div key={i} className="h-64 bg-gray-200 animate-pulse rounded-xl" />
+                                <BlogSkeleton key={i} />
                               ))}
                             </div>
                           )}
@@ -179,7 +195,7 @@ const Learn =()=> {
                           {/* End of feed */}
                           {!hasMore && posts.length > 0 && (
                             <p className="text-center text-gray-400 text-sm mt-8">
-                              You've reached the end.
+                              You&apos;ve reached the end.
                             </p>
                           )}
           
@@ -197,9 +213,16 @@ const Learn =()=> {
                 <p className="text-gray-300 text-sm mb-6">
                   Join 150k+ traders who get our deep-dive analysis delivered straight to their feed. Subscribe on YouTube.
                 </p>
-                <button className="w-full bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-700 transition-colors" data-testid="premium-cta-button">
-                  Subscribe on YouTube
-                </button>
+                <a 
+                  href="https://youtu.be/4-9hiOPQsEE?si=RZ3lFLUBe_tH8iPS" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block w-full"
+                >
+                  <button className="w-full bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-700 transition-colors" data-testid="premium-cta-button">
+                    Subscribe on YouTube
+                  </button>
+                </a>
               </div>
 
 

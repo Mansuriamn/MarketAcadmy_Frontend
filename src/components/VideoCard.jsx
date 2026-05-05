@@ -44,8 +44,11 @@ export const VideoCard = ({ video }) => {
         <div className="relative aspect-video overflow-hidden">
           <img
             src={imageUrl}
-
             loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null; 
+              e.target.src = "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=800";
+            }}
             className="w-full h-full object-cover block border-none outline-none group-hover:scale-105 transition-transform duration-700"
           />
 

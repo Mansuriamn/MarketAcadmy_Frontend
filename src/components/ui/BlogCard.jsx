@@ -56,6 +56,10 @@ const BlogCardComponent = ({ post, page }) => {
           <img
             src={imageUrl}
             loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://images.unsplash.com/photo-1611974717482-98287e074b35?auto=format&fit=crop&q=80&w=800";
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
 

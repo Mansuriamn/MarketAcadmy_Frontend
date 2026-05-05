@@ -13,7 +13,7 @@ export default function Guide({data}) {
                 <div className="space-y-5">
                   {data.steps.map((guide) => (
                     <div
-                      key={guide.step}
+                      key={guide.id}
                       data-testid={`guide-step-${guide.id}`}
                       className="flex gap-4 items-start group"
                     >

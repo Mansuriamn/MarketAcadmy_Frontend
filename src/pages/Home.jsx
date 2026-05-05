@@ -16,9 +16,13 @@ import useDebounce from '../hooks/useDebounce';
 import { TrendingUp, ShieldCheck, MessageCircle } from "lucide-react";
 
 
+import BlogSkeleton from '../components/ui/BlogSkeleton';
+import { useDataCache } from '../context/CacheContext';
+
 const LIMIT = 10;
 
 const Home = () =>{
+  const { getCachedData, setCachedData } = useDataCache();
   const [searchQuery, setSearchQuery]       = useState("");
   const [activeCategory, setActiveCategory] = useState("All Insights");
   const [posts, setPosts]                   = useState([]);
@@ -29,17 +33,20 @@ const Home = () =>{
   const debouncedQuery = useDebounce(searchQuery, 400);
 
   // ─── Single unified fetch ──────────────────────────────────────────────
-  /**
-   * One function handles all three cases:
-   * 1. Search query present → /api/blogs/search?q=...
-   * 2. Category selected    → /api/blogs/category?category=...
-   * 3. Default              → /api/blogs
-   */
   const fetchPosts = useCallback(async (pageNum, category, query = "") => {
-    setLoading(true);
+    const offset = pageNum * LIMIT;
+    const cacheKey = `blogs-${category}-${query}-${pageNum}`;
+
+    // 🚀 INSTANT UI: Show cached data immediately if it's the first page
+    const cached = getCachedData(cacheKey);
+    if (cached && pageNum === 0) {
+      setPosts(cached);
+      setHasMore(cached.length === LIMIT);
+    } else if (!cached) {
+      setLoading(true);
+    }
 
     try {
-      const offset = pageNum * LIMIT;
       let endpoint;
 
       if (query.trim().length >= 2) {
@@ -52,16 +59,16 @@ const Home = () =>{
 
       const incoming = await apiCall(endpoint);
 
-      // page 0 → replace | page 1+ → append
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
       setHasMore(incoming.length === LIMIT);
+      setCachedData(cacheKey, incoming);
 
     } catch (err) {
       console.error("fetchPosts error:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getCachedData, setCachedData]);
   
 
   // ─── Search effect ─────────────────────────────────────────────────────
@@ -145,12 +152,11 @@ const Home = () =>{
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
               <div className="lg:col-span-2">
-
                 {/* Skeleton — first load only */}
                 {loading && posts.length === 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {Array.from({ length: LIMIT }).map((_, i) => (
-                      <div key={i} className="h-64 bg-gray-200 animate-pulse rounded-xl" />
+                      <BlogSkeleton key={i} />
                     ))}
                   </div>
                 )}

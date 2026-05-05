@@ -7,10 +7,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("admin");
-    // Optionally redirect: window.location.href = "/account";
+  const logout = async () => {
+    try {
+      await apiCall("/api/auth/logout", { method: "POST", silent: true });
+    } catch (err) {
+      console.error("Logout failed on server:", err);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("admin");
+      window.location.href = "/";
+    }
   };
 
   useEffect(() => {

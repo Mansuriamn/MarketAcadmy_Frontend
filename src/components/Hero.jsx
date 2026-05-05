@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from 'react'; 
 import { apiCall } from '../api/config';
+import { useDataCache } from '../context/CacheContext';
 
 const LIMIT = 1; 
 const offset = 0;
 
 const Hero = ({ page }) => {
+  const { getCachedData, setCachedData } = useDataCache();
   const [loading, setLoading] = useState(true);
   const [post, setPost] = useState(null);
 
   useEffect(() => {
     const fetchHero = async () => {
+      const cacheKey = `hero-${page}`;
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        setPost(cached);
+        setLoading(false);
+      }
+
       try {
-        setLoading(true);
         const data = await apiCall(`/api/${page}?limit=${LIMIT}&offset=${offset}`);
         setPost(data);
+        setCachedData(cacheKey, data);
       } catch (err) {
         console.error("Hero fetch error:", err);
       } finally {
@@ -21,7 +31,7 @@ const Hero = ({ page }) => {
       }
     };
     fetchHero();
-  }, [page]);
+  }, [page, getCachedData, setCachedData]);
 
   if (loading) {
     return (
@@ -43,6 +53,7 @@ const Hero = ({ page }) => {
         <img
           src={imageUrl}
           alt={title}
+          fetchpriority="high"
           className="w-full h-[350px] md:h-[500px] object-cover group-hover:scale-105 transition duration-1000 ease-out"
         />
 

@@ -8,14 +8,18 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { BrowserRouter as Router } from 'react-router-dom';
 import ReloadPrompt from './components/ReloadPrompt.jsx';
 
+import { CacheProvider } from './context/CacheContext.jsx';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Router>
       <ErrorBoundary>
-        <AuthProvider>
-          <App />
-          <ReloadPrompt />
-        </AuthProvider>
+        <CacheProvider>
+          <AuthProvider>
+            <App />
+            <ReloadPrompt />
+          </AuthProvider>
+        </CacheProvider>
       </ErrorBoundary>
     </Router>
   </StrictMode>,
