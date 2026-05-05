@@ -217,11 +217,10 @@ const Learn =()=> {
                   href="https://youtu.be/4-9hiOPQsEE?si=RZ3lFLUBe_tH8iPS" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="block w-full"
+                  className="block w-full text-center bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-700 transition-colors"
+                  data-testid="premium-cta-button"
                 >
-                  <button className="w-full bg-red-500 text-white font-semibold py-3 rounded-lg hover:bg-red-700 transition-colors" data-testid="premium-cta-button">
-                    Subscribe on YouTube
-                  </button>
+                  Subscribe on YouTube
                 </a>
               </div>
 
