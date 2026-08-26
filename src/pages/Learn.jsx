@@ -55,7 +55,6 @@ const Learn =()=> {
       const incoming = await apiCall(endpoint);
       
       // Update state and cache
-      const newPosts = pageNum === 0 ? incoming : [...posts, ...incoming];
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
       setHasMore(incoming.length === LIMIT);
       setCachedData(cacheKey, incoming); // only cache the "chunk"

@@ -1,6 +1,7 @@
 import React from "react";
 import { Play, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { stripHtml } from "../utils/stripHtml";
 
 export const VideoCard = ({ video }) => {
   if (!video) return null;
@@ -12,6 +13,7 @@ export const VideoCard = ({ video }) => {
     category,
     duration,
     createdAt,
+    publishedAt,
     description,
   } = video;
 
@@ -33,6 +35,8 @@ export const VideoCard = ({ video }) => {
   // ✂️ truncate helper
   const truncate = (text = "", len) =>
     text.length > len ? text.slice(0, len) + "..." : text;
+
+  const cleanDescription = stripHtml(description);
 
   return (
     <Link to={`/video/${_id}`} className="block h-full group">
@@ -83,13 +87,13 @@ export const VideoCard = ({ video }) => {
 
           {/* 📄 Description */}
           <p className="text-sm text-slate-500 mb-4 line-clamp-2">
-            {truncate(description, 90)}
+            {truncate(cleanDescription, 120)}
           </p>
 
           {/* 🕒 Date */}
           <div className="flex items-center text-xs text-slate-400 mt-auto">
             <Clock className="w-4 h-4 mr-1" />
-            <span>{formatDate(createdAt)}</span>
+            <span>{formatDate(publishedAt || createdAt)}</span>
           </div>
         </div>
       </div>

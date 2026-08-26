@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { apiCall } from "../api/config";
 import { TrendingUp, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useDataCache } from "../context/CacheContext";
 
 export default function Headline() {
+  const { getCachedData, setCachedData } = useDataCache();
   const [headlines, setHeadlines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,16 +18,23 @@ export default function Headline() {
   }, []);
 
   const fetchHeadlines = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const cacheKey = "trending-sidebar";
+    const cached = getCachedData(cacheKey);
 
+    if (cached) {
+      setHeadlines(cached);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      setError(null);
       const data = await apiCall("/api/get/trending");
       setHeadlines(data);
-
+      setCachedData(cacheKey, data);
     } catch (err) {
       console.error("Headline Fetch Error:", err);
-      setError("Something went wrong while loading headlines");
+      if (!cached) setError("Something went wrong while loading headlines");
     } finally {
       setLoading(false);
     }

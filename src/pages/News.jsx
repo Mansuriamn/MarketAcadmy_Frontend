@@ -15,12 +15,13 @@ import ResultsSection from '../advertise/ResultsSection';
 import { BlogCard } from '../components/ui/BlogCard';
 import MoreButton from '../components/ui/MoreButton';
 import useDebounce from '../hooks/useDebounce';
+import { useDataCache } from '../context/CacheContext';
 
 const LIMIT = 10;
 
 const News =() => {
-       
- const [searchQuery, setSearchQuery]       = useState("");
+  const { getCachedData, setCachedData } = useDataCache();
+  const [searchQuery, setSearchQuery]       = useState("");
   const [activeCategory, setActiveCategory] = useState("All Insights");
   const [posts, setPosts]                   = useState([]);
   const [page, setPage]                     = useState(0);
@@ -31,10 +32,19 @@ const News =() => {
 
   // ─── Single unified fetch ──────────────────────────────────────────────
   const fetchPosts = useCallback(async (pageNum, category, query = "") => {
-    setLoading(true);
+    const offset = pageNum * LIMIT;
+    const cacheKey = `news-${category}-${query}-${pageNum}`;
+
+    // 🚀 INSTANT UI: Show cached data immediately if it's the first page
+    const cached = getCachedData(cacheKey);
+    if (cached && pageNum === 0) {
+      setPosts(cached);
+      setHasMore(cached.length === LIMIT);
+    } else if (!cached) {
+      setLoading(true);
+    }
 
     try {
-      const offset = pageNum * LIMIT;
       let endpoint;
 
       if (query.trim().length >= 2) {
@@ -47,6 +57,11 @@ const News =() => {
 
       const incoming = await apiCall(endpoint);
 
+      // Save to cache
+      if (pageNum === 0) {
+        setCachedData(cacheKey, incoming);
+      }
+
       // page 0 → replace | page 1+ → append
       setPosts(prev => pageNum === 0 ? incoming : [...prev, ...incoming]);
       setHasMore(incoming.length === LIMIT);
@@ -56,7 +71,7 @@ const News =() => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getCachedData, setCachedData]);
   
 
   // ─── Search effect ─────────────────────────────────────────────────────

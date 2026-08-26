@@ -95,7 +95,7 @@ const Account = () => {
 
       {/* RIGHT SIDE */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-10 bg-gray-100">
-        <div className="w-full max-w-md bg-white rounded-xl p-8 shadow-md hover:shadow-2xl transition-all duration-300">
+        <div className="w-full max-w-md bg-white rounded-xl p-8 shadow-md hover:shadow-2xl transition-all duration-300  ">
 
           <div className="flex items-center gap-2 mb-2">
             <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>

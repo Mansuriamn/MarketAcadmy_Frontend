@@ -2,18 +2,29 @@ import "../App.css";
 import React, { useState, useEffect, useMemo } from "react";
 import { apiCall } from "../api/config";
 import { getMarketSignal } from "../utils/getMarketSignal";
+import { useDataCache } from "../context/CacheContext";
 
 const LIMIT = 4;
 
 export default function BreakingNewsTicker() {
+  const { getCachedData, setCachedData } = useDataCache();
   const [loading, setLoading] = useState(true);
   const [headlines, setHeadlines] = useState([]);
 
   useEffect(() => {
+    const cacheKey = "ticker-headlines";
+    const cached = getCachedData(cacheKey);
+
+    if (cached) {
+      setHeadlines(cached);
+      setLoading(false);
+    }
+
     const fetchHeadlines = async () => {
       try {
         const data = await apiCall(`/api/headlines?limit=${LIMIT}&offset=0`);
         setHeadlines(data);
+        setCachedData(cacheKey, data);
       } catch (err) {
         console.error("Ticker fetch failed:", err);
       } finally {
@@ -22,7 +33,7 @@ export default function BreakingNewsTicker() {
     };
 
     fetchHeadlines();
-  }, []);
+  }, [getCachedData, setCachedData]);
 
   // ✅ Duplicate data once for smooth infinite scroll
   const tickerData = useMemo(() => {
